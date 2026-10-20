@@ -4,6 +4,7 @@ command per experiment."""
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import sys
 from pathlib import Path
@@ -11,7 +12,7 @@ from pathlib import Path
 import cv2
 import pytesseract
 
-from . import evaluate_classify, evaluate_extract, evaluate_learned, evaluate_llm
+from . import evaluate_classify, evaluate_cluster, evaluate_extract, evaluate_learned, evaluate_llm
 from .cache import DEFAULT_CACHE, ocr_receipts
 from .classify import load_docs, split_docs
 from .evaluate import compare, evaluate, render_markdown, summarize, write_csv
@@ -298,6 +299,39 @@ def _cmd_eval_classify(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_eval_cluster(args: argparse.Namespace) -> int:
+    config = OcrConfig(lang=args.lang, psm=args.psm)
+    data = {}
+    for split in ("dev", "train", "test"):
+        receipts = load_split(Path(args.data), split)
+        print(f"{split}: {len(receipts)} receipts, OCR cached under {args.cache}...", file=sys.stderr)
+        ocr = ocr_receipts(receipts, args.prep, config, Path(args.cache), args.workers)
+        data[split] = [(r, ocr[r.id]) for r in receipts]
+    if not data["test"] or not (data["dev"] or data["train"]):
+        print(f"Not enough receipts under {args.data}.", file=sys.stderr)
+        return 2
+    ranker = TotalRanker.load(Path(args.ranker)) if Path(args.ranker).exists() else None
+    llm_ok = None
+    if args.llm_report and Path(args.llm_report).exists():
+        with Path(args.llm_report).open(encoding="utf-8") as f:
+            llm_ok = {row["receipt"]: row["llm_total_ok"] == "True" for row in csv.DictReader(f)
+                      if row["llm_total_ok"] in ("True", "False")}
+    report = evaluate_cluster.run(data["dev"] + data["train"], data["test"], ranker, llm_ok,
+                                  repeats=args.repeats, log=lambda message: print(message, file=sys.stderr))
+    out = Path(args.out)
+    evaluate_cluster.write_csv(report.rows, out / "cluster_eval.csv")
+    header = (
+        "Receipts are grouped from their OCR, never from their labels; the merchant names in the SROIE "
+        "labels only score the groups (branches of a few chains and label typos merged, see "
+        f"`folio/cluster.py`). OCR: `{args.prep}`, page mode {args.psm}. Ranker: `{args.ranker}`. "
+        f"Model answers: `{args.llm_report}`."
+    )
+    md = evaluate_cluster.render_markdown(report, header)
+    (out / "cluster_eval.md").write_text(md, encoding="utf-8")
+    print(md)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="folio", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -400,6 +434,20 @@ def build_parser() -> argparse.ArgumentParser:
     p_cls.add_argument("--llm-cache", default="cache/llm-classify")
     p_cls.add_argument("--out", default="results")
     p_cls.set_defaults(func=_cmd_eval_classify, needs_tesseract=False)
+
+    p_clu = sub.add_parser("eval-cluster", help="group SROIE receipts by layout without labels")
+    p_clu.add_argument("--data", default="data/sroie/data", help="folder with img/, box/ and key/")
+    p_clu.add_argument("--prep", default="gray", choices=sorted(PIPELINES))
+    p_clu.add_argument("--psm", type=int, default=6)
+    p_clu.add_argument("--lang", default="eng")
+    p_clu.add_argument("--cache", default=str(DEFAULT_CACHE))
+    p_clu.add_argument("--workers", type=int, default=2)
+    p_clu.add_argument("--ranker", default="models/total_ranker.json")
+    p_clu.add_argument("--llm-report", help="stage 3 answers of the model reading the scan",
+                       default="results/llm_eval_test_all_image_anthropic_claude-haiku-5-5.csv")
+    p_clu.add_argument("--repeats", type=int, default=3)
+    p_clu.add_argument("--out", default="results")
+    p_clu.set_defaults(func=_cmd_eval_cluster)
     return parser
 
 

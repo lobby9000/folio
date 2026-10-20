@@ -246,16 +246,42 @@ def receipt_accuracy(model, receipts: Sequence[LabelledReceipt]) -> float:
     return hits / len(receipts) if receipts else float("nan")
 
 
+def group_folds(groups: Sequence[str], folds: int = 5, seed: int = 0) -> np.ndarray:
+    """The fold of each item when whole groups must stay together: groups are dealt largest
+    first, each to the fold holding the fewest items so far, ties broken by a seeded shuffle."""
+    names = sorted(set(groups))
+    sizes = {g: 0 for g in names}
+    for g in groups:
+        sizes[g] += 1
+    shuffled = [names[k] for k in np.random.default_rng(seed).permutation(len(names))]
+    load, where = [0] * folds, {}
+    for g in sorted(shuffled, key=lambda g: -sizes[g]):  # sorted() is stable: the shuffle breaks ties
+        f = int(np.argmin(load))
+        where[g] = f
+        load[f] += sizes[g]
+    return np.array([where[g] for g in groups])
+
+
 def cross_validate(
-    kind: str, receipts: Sequence[LabelledReceipt], folds: int = 5, seed: int = 0
+    kind: str, receipts: Sequence[LabelledReceipt], folds: int = 5, seed: int = 0,
+    groups: Sequence[str] | None = None,
 ) -> list[float]:
     """Receipt-level accuracy of each fold, holding out whole receipts so no receipt is
-    seen in training and scoring at once."""
-    order = np.random.default_rng(seed).permutation(len(receipts))
+    seen in training and scoring at once. With `groups` (one label per receipt, such as
+    its layout), whole groups are held out together, so a layout seen in training never
+    helps score itself."""
+    if groups is not None:
+        fold = group_folds(groups, folds, seed)
+        held_out = [[r for r, k in zip(receipts, fold, strict=True) if k == f] for f in range(folds)]
+        fitted_on = [[r for r, k in zip(receipts, fold, strict=True) if k != f] for f in range(folds)]
+    else:
+        order = np.random.default_rng(seed).permutation(len(receipts))
+        held_out = [[receipts[k] for j, k in enumerate(order) if j % folds == f] for f in range(folds)]
+        fitted_on = [[receipts[k] for j, k in enumerate(order) if j % folds != f] for f in range(folds)]
     scores = []
-    for f in range(folds):
-        held = [receipts[k] for j, k in enumerate(order) if j % folds == f]
-        fit_on = [receipts[k] for j, k in enumerate(order) if j % folds != f]
+    for held, fit_on in zip(held_out, fitted_on, strict=True):
+        if not held or not fit_on:  # fewer groups than folds
+            continue
         X, y, _ = stack(fit_on)
         model = make_model(kind).fit(X, y)
         scores.append(receipt_accuracy(model, held))
