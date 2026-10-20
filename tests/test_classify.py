@@ -144,6 +144,7 @@ def test_eval_classify_command_runs_without_tesseract(tmp_path, monkeypatch):
     data = write_corpus(tmp_path / "docs", per_class=15)
     monkeypatch.setattr("folio.cli.tesseract_available", lambda: False)
     out = tmp_path / "results"
-    assert main(["eval-classify", "--data", str(data), "--folds", "3", "--repeats", "1", "--out", str(out)]) == 0
+    args = ["eval-classify", "--data", str(data), "--folds", "3", "--repeats", "1", "--out", str(out)]
+    assert main(args) == 0
     assert (out / "classify_eval.md").exists() and (out / "classify_eval.csv").exists()
     assert main(["eval-classify", "--data", str(tmp_path / "missing"), "--out", str(out)]) == 2
