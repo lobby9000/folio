@@ -95,22 +95,24 @@ def load_receipts(root: Path, limit: int | None = None, seed: int = 0) -> list[R
     return _load(root, ids)
 
 
-SPLITS = ("dev", "test")
+SPLITS = ("dev", "test", "train")
 
 
 def split_ids(root: Path, dev_size: int = 100, test_size: int = 200) -> dict[str, list[str]]:
-    """Disjoint development and test sets.
+    """Disjoint development, test and training sets.
 
     `dev` is the same sample the OCR stage used (seed 0), and it is the only set
     looked at while writing extraction rules. `test` is drawn from the remaining
-    receipts with seed 1 and is only used to report results, so the rules are never
-    tuned on the receipts they are scored on.
+    receipts with seed 1 and is only used to report results, so nothing is tuned on
+    the receipts it is scored on. `train` is everything else, the data the learned
+    extractor of stage 3 is fitted on.
     """
     ids = receipt_ids(Path(root))
     dev = sorted(random.Random(0).sample(ids, min(dev_size, len(ids))))
     rest = [i for i in ids if i not in set(dev)]
     test = sorted(random.Random(1).sample(rest, min(test_size, len(rest))))
-    return {"dev": dev, "test": test}
+    train = sorted(set(rest) - set(test))
+    return {"dev": dev, "test": test, "train": train}
 
 
 def load_split(root: Path, split: str, dev_size: int = 100, test_size: int = 200) -> list[Receipt]:

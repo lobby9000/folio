@@ -11,10 +11,11 @@ from pathlib import Path
 import cv2
 import pytesseract
 
-from . import evaluate_extract
+from . import evaluate_extract, evaluate_learned
 from .cache import DEFAULT_CACHE, ocr_receipts
 from .evaluate import compare, evaluate, render_markdown, summarize, write_csv
 from .extract import EXTRACTORS
+from .learn import TotalRanker
 from .ocr import OcrConfig, run_ocr, tesseract_available
 from .preprocess import PIPELINES
 from .sroie import SPLITS, load_receipts, load_split
@@ -76,12 +77,16 @@ def _cmd_extract(args: argparse.Namespace) -> int:
     if img is None:
         print(f"Could not read the image: {args.image}", file=sys.stderr)
         return 2
-    lines = run_ocr(PIPELINES[args.prep](img), OcrConfig(lang=args.lang, psm=args.psm)).text.splitlines()
+    result = run_ocr(PIPELINES[args.prep](img), OcrConfig(lang=args.lang, psm=args.psm))
+    lines = result.text.splitlines()
     found = {field: extract(lines) for field, extract in EXTRACTORS["rules"].items()}
+    if args.ranker:
+        found["total"] = TotalRanker.load(Path(args.ranker)).extract(result.rows)
     if args.json:
         print(json.dumps({
             field: None if e is None else {"value": str(e.value), "rule": e.rule, "row": e.line + 1,
-                                           "evidence": e.evidence.strip(), "checked": e.checked}
+                                           "evidence": e.evidence.strip(), "checked": e.checked,
+                                           **({"score": round(e.score, 3)} if e.score is not None else {})}
             for field, e in found.items()
         }, indent=2, ensure_ascii=False))
         return 0
@@ -90,7 +95,8 @@ def _cmd_extract(args: argparse.Namespace) -> int:
             print(f"{field:<6} not found")
             continue
         check = f"; {_CHECK[e.checked]}" if _CHECK[e.checked] else ""
-        print(f"{field:<6} {e.value}  ({e.rule}, row {e.line + 1}: {e.evidence.strip()!r}{check})")
+        score = f"; score {e.score:.2f}" if e.score is not None else ""
+        print(f"{field:<6} {e.value}  ({e.rule}, row {e.line + 1}: {e.evidence.strip()!r}{check}{score})")
     return 0
 
 
@@ -127,6 +133,37 @@ def _cmd_eval_extract(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_eval_learned(args: argparse.Namespace) -> int:
+    config = OcrConfig(lang=args.lang, psm=args.psm)
+    data = {}
+    for split in ("dev", "train", "test"):
+        receipts = load_split(Path(args.data), split)
+        print(f"{split}: {len(receipts)} receipts, OCR cached under {args.cache}...", file=sys.stderr)
+        ocr = ocr_receipts(receipts, args.prep, config, Path(args.cache), args.workers)
+        data[split] = [(r, ocr[r.id]) for r in receipts]
+    if not data["test"] or not (data["dev"] or data["train"]):
+        print(f"Not enough receipts under {args.data}.", file=sys.stderr)
+        return 2
+    pool = [(r, o, split) for split in ("dev", "train") for r, o in data[split]]
+    report, ranker = evaluate_learned.run(pool, data["test"])
+    out = Path(args.out)
+    evaluate_learned.write_csv(report.rows, out / "learned_eval.csv")
+    header = (
+        "A ranker scores every amount OCR found on a receipt and answers with the best one "
+        "(`folio/learn.py`). It is fitted on the `dev` and `train` splits, chosen by cross-validation "
+        f"there, and scored once on the `test` split, the same {len(report.rows)} labelled receipts the "
+        "stage 2 rules were scored on. "
+        f"OCR: `{args.prep}` preprocessing, page mode {args.psm}."
+    )
+    report_md = evaluate_learned.render_markdown(report, header)
+    (out / "learned_eval.md").write_text(report_md, encoding="utf-8")
+    if ranker.kind == "logistic":
+        ranker.save(Path(args.model))
+        print(f"Model saved to {args.model}", file=sys.stderr)
+    print(report_md)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="folio", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -156,11 +193,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_ext.add_argument("--psm", type=int, default=6)
     p_ext.add_argument("--lang", default="eng")
     p_ext.add_argument("--json", action="store_true", help="print JSON with the evidence for each field")
+    p_ext.add_argument("--ranker", help="answer the total with a saved ranker, e.g. models/total_ranker.json")
     p_ext.set_defaults(func=_cmd_extract)
 
     p_eext = sub.add_parser("eval-extract", help="score the total and date extractors on SROIE")
     p_eext.add_argument("--data", default="data/sroie/data", help="folder with img/, box/ and key/")
-    p_eext.add_argument("--splits", nargs="+", default=list(SPLITS), choices=SPLITS)
+    p_eext.add_argument("--splits", nargs="+", default=["dev", "test"], choices=SPLITS)
     p_eext.add_argument("--prep", default="gray", choices=sorted(PIPELINES))
     p_eext.add_argument("--psm", type=int, default=6)
     p_eext.add_argument("--lang", default="eng")
@@ -168,6 +206,18 @@ def build_parser() -> argparse.ArgumentParser:
     p_eext.add_argument("--workers", type=int, default=2)
     p_eext.add_argument("--out", default="results")
     p_eext.set_defaults(func=_cmd_eval_extract)
+
+    p_learn = sub.add_parser("eval-learned",
+                             help="fit the total ranker, choose it by cross-validation, test it")
+    p_learn.add_argument("--data", default="data/sroie/data", help="folder with img/, box/ and key/")
+    p_learn.add_argument("--prep", default="gray", choices=sorted(PIPELINES))
+    p_learn.add_argument("--psm", type=int, default=6)
+    p_learn.add_argument("--lang", default="eng")
+    p_learn.add_argument("--cache", default=str(DEFAULT_CACHE))
+    p_learn.add_argument("--workers", type=int, default=2)
+    p_learn.add_argument("--out", default="results")
+    p_learn.add_argument("--model", default="models/total_ranker.json", help="where to save the fitted model")
+    p_learn.set_defaults(func=_cmd_eval_learned)
     return parser
 
 

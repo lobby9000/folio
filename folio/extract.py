@@ -49,6 +49,7 @@ class Extraction:
     evidence: str  # that row, as read
     rule: str
     checked: bool | None = None  # total equals cash minus change; None if the receipt has no such pair
+    score: float | None = None  # a learned extractor's confidence; the rules leave it empty
 
 
 def _words(text: str) -> list[str]:
