@@ -10,7 +10,8 @@ here, and it is what keeps a hallucinated total out of the results.
 Two backends speak the same schema:
 
 * `anthropic`: the Claude API with structured outputs. Needs `pip install anthropic`
-  and an `ANTHROPIC_API_KEY`.
+  and an `ANTHROPIC_API_KEY`. A key that is not scoped to one workspace also needs
+  `ANTHROPIC_WORKSPACE_ID` (the `wrkspc_...` ID from the Console's Workspaces page).
 * `ollama`: a local model served by Ollama (`ollama pull qwen2.5:3b`), so nothing
   leaves the machine. It uses Ollama's structured outputs on `/api/chat`.
 
@@ -85,7 +86,9 @@ class AnthropicBackend:
         if client is None:
             import anthropic  # optional dependency: pip install anthropic
 
-            client = anthropic.Anthropic(max_retries=5)  # backs off on rate limits
+            workspace = os.environ.get("ANTHROPIC_WORKSPACE_ID")
+            headers = {"anthropic-workspace-id": workspace} if workspace else None
+            client = anthropic.Anthropic(max_retries=5, default_headers=headers)  # backs off on rate limits
         self.client, self.model, self.max_tokens = client, model, max_tokens
 
     def ask(self, prompt: str) -> Answer:
