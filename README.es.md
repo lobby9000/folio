@@ -11,12 +11,36 @@ Convierte documentos escaneados en campos estructurados y buscables: OCR, extrac
 | 1. Línea base de OCR | Tesseract, preprocesamiento con OpenCV, CER, WER y verificación de campos sobre recibos de SROIE | Terminada |
 | 2. Línea base de extracción | Reglas para el total y la fecha, montos y fechas normalizados, verificación con el efectivo | Terminada |
 | 3. Extracción aprendida y con LLM | Un ranker aprendido de recibos etiquetados, y una cascada que solo le pregunta a un LLM que lee el escaneo cuando hay duda | Terminada |
-| 4. Clasificación y agrupamiento | Tipo de documento y agrupamiento de formatos sin etiquetas | Siguiente |
-| 5. Búsqueda | BM25 y embeddings fusionados con RRF, medidos con Recall@k y MRR | Planeada |
+| 4. Clasificación y agrupamiento | Tipo de documento a partir del texto del OCR, y formatos de recibo agrupados sin etiquetas | Terminada |
+| 5. Búsqueda | BM25 y embeddings fusionados con RRF, medidos con Recall@k y MRR | Siguiente |
 | 6. API y AWS | FastAPI en una imagen de contenedor para Lambda detrás de API Gateway | Planeada |
 
 <!-- results:start -->
 ## Resultados hasta ahora
+
+### Etapa 4: tipos de documento y formatos de recibo
+
+SROIE solo tiene recibos, así que la mitad de esta etapa sobre tipos de documento usa otro conjunto público: el texto de Tesseract de Tobacco3482 (QS-OCR-Small), 3,482 páginas escaneadas de un mismo archivo en diez clases. La mitad sobre formatos se queda con los recibos de SROIE y no usa etiquetas para formar sus grupos. Reportes: [tipos de documento](results/classify_eval.md), [formatos](results/cluster_eval.md).
+
+**Tipo de documento a partir del texto del OCR**
+
+| Sobre los 696 documentos reservados | Exactitud [IC 95%] | F1 macro |
+|---|---|---|
+| Siempre la clase más común (memorándum) | 17.8% [15.2%, 20.8%] | 0.03 |
+| Naive Bayes, palabras | 77.0% [73.7%, 80.0%] | 0.70 |
+| SVM lineal, palabras | 85.2% [82.4%, 87.6%] | 0.84 |
+| SVM lineal, caracteres dentro de palabras (elegido por validación cruzada) | 84.8% [81.9%, 87.2%] | 0.84 |
+
+* **Un modelo lineal sobre texto ruidoso del OCR acierta el 85%.** Se compararon seis candidatos con validación cruzada sobre los 2,786 documentos de entrenamiento, y ahí los n-gramas de caracteres ganaron por unos 2 puntos de F1 macro. Sobre los documentos reservados empatan con las palabras (590 contra 593 aciertos, McNemar exacta, p = 0.78), así que la idea de que los caracteres aguantan mejor los errores del OCR no se confirma aquí. Naive Bayes queda 8 puntos atrás de los dos.
+* **Los errores son entre vecinos.** Los correos (F1 0.98) y los currículums (1.00) casi nunca fallan. Los errores más comunes son cartas leídas como memorándums (13 de 113), anuncios leídos como notas (9 de 46), y reportes y artículos científicos confundidos entre sí. Cinco de esas 13 cartas tienen impresa la palabra memorandum y la mayoría lleva renglones To, From y Subject, así que algunos de estos errores pueden estar en las etiquetas.
+* **El margen sirve como confianza.** En la mitad más segura de los documentos de prueba el modelo acierta el 99.4%. Un umbral elegido con predicciones fuera de partición sobre los documentos de entrenamiento conserva 514 de los 696 con 96.5% de aciertos y deja 182 en los que el modelo solo acierta el 52%: más o menos una cuarta parte de los documentos, donde debería decidir un modelo más fuerte o una persona.
+* **Lo que mira el modelo de palabras.** Sus palabras más pesadas son "sent", "pm" y "subject" para los correos, "dear" y "sincerely" para las cartas, "university" y "education" para los currículums, "et al" y "receptor" para los artículos científicos, y "surgeon" y "warning" para los anuncios, por la advertencia del Surgeon General impresa en los anuncios de cigarros.
+
+**Formatos de recibo sin etiquetas**
+
+* **Los primeros renglones del OCR encuentran a los comercios.** Al agrupar los 200 recibos de prueba por los caracteres de sus primeros seis renglones salen 102 grupos para 96 comercios: el 94% de los pares que quedan juntos son del mismo comercio, y el 86% de los pares del mismo comercio quedan juntos (AMI 0.92). La representación y el corte se eligieron con los recibos de desarrollo y entrenamiento. Ahí, la posición de las palabras en la página y una miniatura del escaneo salieron mucho peor (AMI 0.58 y 0.48 contra 0.91), así que lo que dice un recibo identifica su formato mejor que dónde cae la tinta, al menos con rasgos así de simples.
+* **Los extractores baratos fallan más con formatos nuevos. El LLM no.** 142 de los 200 recibos de prueba son de un comercio que también tiene recibos de desarrollo o entrenamiento. En esos el ranker acierta el 85%, y en los otros 58 acierta el 74% (las reglas: 80% y 64%). Haiku leyendo el escaneo saca 96% y 98%. La misma división se puede hacer sin etiquetas: un recibo cuenta como formato conocido cuando su vecino más cercano de desarrollo o entrenamiento está más cerca que el corte del agrupamiento. Esa regla coincide con las etiquetas de comercio en 171 de 200 recibos y separa al ranker en 85% y 71%.
+* **El ranker no memorizó formatos.** Si en la validación cruzada se apartan comercios completos da 80.5%, y si se apartan los grupos encontrados sin etiquetas da 80.4%, contra 80.6% con recibos al azar. La diferencia viene de los comercios mismos: con comercios completos fuera, el ranker acierta el 88% de los recibos de comercios con cinco o más recibos y entre 70% y 72% de los más raros. Las cadenas comunes imprimen recibos limpios y regulares. Un formato nuevo es entonces una razón para preguntarle al LLM, y la distancia al recibo conocido más cercano lo detecta sin etiquetas.
 
 ### Etapa 3: un ranker aprendido y después un LLM que lee el escaneo
 
@@ -88,6 +112,20 @@ Las reglas se escribieron viendo solo 100 recibos de desarrollo y después se mi
 * **Ampliar al doble empeoró y tardó más del doble.** Enderezar casi no cambió nada, lo que sugiere que estos recibos se escanearon derechos.
 <!-- results:end -->
 
+## Cómo funciona la etapa 4
+
+```
+texto del OCR de una página -> n-gramas de caracteres dentro de palabras (TF-IDF) -> SVM lineal -> clase + margen
+      ¿margen debajo del umbral?             -> decide un modelo más fuerte o una persona
+
+OCR de un recibo -> caracteres de sus primeros seis renglones (TF-IDF) -> distancia coseno -> grupos por enlace promedio
+      ¿recibo de entrenamiento más cercano más lejos que el corte? -> un formato nuevo
+```
+
+* **Tipo de documento** (`folio/classify.py`, `folio/evaluate_classify.py`): QS-OCR-Small se divide una sola vez, estratificado, en 2,786 documentos de entrenamiento y 696 de prueba. Seis candidatos (naive Bayes complementario, y SVM lineales sobre n-gramas de 1 y 2 palabras, sobre n-gramas de 2 a 5 caracteres dentro de palabras, o sobre ambos, con dos niveles de regularización) se comparan con validación cruzada de 5 particiones repetida dos veces, por F1 macro, que pesa igual las clases raras que las comunes. El elegido se ajusta con todos los documentos de entrenamiento y la prueba se mide una sola vez. El umbral sobre el margen se elige con predicciones fuera de partición. También se le puede preguntar a un LLM (`--llm`), que elige entre las clases con un enum en el esquema JSON.
+* **Formatos** (`folio/cluster.py`, `folio/evaluate_cluster.py`): cuatro representaciones (las palabras del OCR, los caracteres de los primeros seis renglones, una cuadrícula de dónde caen las palabras y una miniatura del escaneo), comparadas con distancia coseno y agrupadas con clustering aglomerativo de enlace promedio, cortado en un umbral de distancia. Los nombres de comercio de las etiquetas, con sucursales de una cadena y errores de captura unificados, solo califican los grupos: información mutua ajustada, homogeneidad, completitud, y precisión y recall por pares.
+* **Particiones por grupo** (`folio/learn.py`): la validación cruzada puede repartir grupos completos entre particiones, de mayor a menor, para que un comercio o un formato encontrado sin etiquetas nunca quede de los dos lados.
+
 ## Cómo funciona la etapa aprendida
 
 ```
@@ -131,7 +169,7 @@ En Ubuntu o cualquier Linux con Python 3.11 o más reciente:
 sudo apt install tesseract-ocr tesseract-ocr-spa
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt && pip install -e . --no-deps
-pytest -q                                   # 147 pruebas en unos segundos
+pytest -q                                   # 174 pruebas en unos segundos
 
 bash scripts/get_sroie.sh                   # 626 recibos en data/sroie (unos 600 MB)
 folio ocr data/sroie/data/img/000.jpg --prep gray --psm 6
@@ -145,6 +183,10 @@ folio eval-extract --workers 2              # guarda el OCR en cache/ocr y escri
 folio eval-learned                          # validación cruzada, una corrida de prueba, guarda models/total_ranker.json
 folio extract data/sroie/data/img/097.jpg --ranker models/total_ranker.json
 
+bash scripts/get_tobacco_text.sh            # 3,482 textos de OCR de Tobacco3482 en data/qs-ocr-small (2.4 MB)
+folio eval-classify                         # tipos de documento: validación cruzada, una corrida de prueba, results/classify_eval.md
+folio eval-cluster                          # formatos de recibo sin etiquetas, results/cluster_eval.md
+
 # La etapa con LLM. Con un modelo local que lee el texto del OCR (nada sale de tu máquina):
 ollama pull qwen2.5:3b
 folio eval-llm --backend ollama --model qwen2.5:3b          # solo pregunta por los recibos que manda la cascada
@@ -153,9 +195,12 @@ pip install anthropic && export ANTHROPIC_API_KEY=...
 folio eval-llm --backend anthropic --input image --mode all   # el reporte de arriba: Haiku lee los 200 escaneos de prueba, unos 6 centavos de dólar
 folio eval-llm --backend anthropic --input image --mode all --guard   # con la protección: las respuestas salen de la caché
 folio extract data/sroie/data/img/097.jpg --ranker models/total_ranker.json --llm anthropic --llm-input image --guard
+folio eval-classify --llm anthropic        # también le pregunta a Haiku por los documentos en los que duda el clasificador
 ```
 
 ## Datos
+
+[QS-OCR-Small](https://github.com/Quicksign/ocrized-text-dataset) (Quicksign, 2019) es el texto de Tesseract 4 del dataset Tobacco3482 (Kumar et al., 2013): 3,482 páginas escaneadas del archivo Truth Tobacco Industry Documents en diez clases (anuncio, correo, formulario, carta, memorándum, noticia, nota, reporte, currículum y artículo científico). La etapa 4 clasifica tipos de documento con él, porque SROIE solo tiene recibos. El script de descarga verifica la suma de comprobación del archivo. El dataset no tiene licencia propia, así que se usa para investigación y no se guarda aquí. Se divide una sola vez, estratificado, en 2,786 documentos de entrenamiento y 696 de prueba.
 
 [SROIE](https://rrc.cvc.uab.es/?ch=13) (ICDAR 2019) tiene recibos escaneados de Malasia con cajas de texto por renglón y cuatro campos clave: empresa, fecha, dirección y total. El script de descarga usa el espejo [zzzDavid/ICDAR-2019-SROIE](https://github.com/zzzDavid/ICDAR-2019-SROIE). Los datos son para uso de investigación y no se guardan en este repositorio. Los 626 recibos se dividen una sola vez: 100 para desarrollo (la muestra de la etapa 1), 200 reservados para prueba y los otros 326 para entrenamiento. Esos 326 no se usaron en la etapa 2 y en la etapa 3 se volvieron los datos de entrenamiento del ranker, así que los cambios futuros se juzgan con validación cruzada sobre ellos y con la única corrida de prueba que recibe cada método. Sus transcripciones tienen algo de ruido propio, así que ni un OCR perfecto llegaría a error cero.
 

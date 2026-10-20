@@ -13,12 +13,36 @@ Turns scanned documents into structured, searchable fields: OCR, field extractio
 | 1. OCR baseline | Tesseract, OpenCV preprocessing, CER, WER and field checks on SROIE receipts | Done |
 | 2. Extraction baseline | Rules for the total and the date, normalised amounts and dates, a cash check | Done |
 | 3. Learned and LLM extraction | A ranker learned from labelled receipts, and a cascade that asks an LLM reading the scan only when unsure | Done |
-| 4. Classification and clustering | Document type, and unlabelled grouping of layouts | Next |
-| 5. Search | BM25 and embeddings fused with RRF, scored with Recall@k and MRR | Planned |
+| 4. Classification and clustering | Document type from OCR text, and receipt layouts grouped without labels | Done |
+| 5. Search | BM25 and embeddings fused with RRF, scored with Recall@k and MRR | Next |
 | 6. API and AWS | FastAPI in a Lambda container image behind API Gateway | Planned |
 
 <!-- results:start -->
 ## Results so far
+
+### Stage 4: document types and receipt layouts
+
+SROIE holds only receipts, so the document-type half of this stage uses another public set: the Tesseract text of Tobacco3482 (QS-OCR-Small), 3,482 scanned pages from one archive in ten classes. The layout half stays on the SROIE receipts and uses no labels to form its groups. Reports: [document types](results/classify_eval.md), [layouts](results/cluster_eval.md).
+
+**Document type from OCR text**
+
+| On the 696 held-out documents | Accuracy [95% CI] | Macro F1 |
+|---|---|---|
+| Always the most common class (memo) | 17.8% [15.2%, 20.8%] | 0.03 |
+| Naive Bayes, words | 77.0% [73.7%, 80.0%] | 0.70 |
+| Linear SVM, words | 85.2% [82.4%, 87.6%] | 0.84 |
+| Linear SVM, characters inside words (chosen by cross-validation) | 84.8% [81.9%, 87.2%] | 0.84 |
+
+* **A linear model on noisy OCR text gets 85% right.** Six candidates were compared by cross-validation on the 2,786 training documents, and character n-grams led there by about 2 points of macro F1. On the held-out documents they tie with words (590 against 593 right, exact McNemar p = 0.78), so the idea that characters cope better with OCR errors is not confirmed here. Naive Bayes trails both by 8 points.
+* **The mistakes are between neighbours.** Emails (F1 0.98) and resumes (1.00) are almost never missed. The most common errors are letters read as memos (13 of 113), advertisements read as notes (9 of 46), and reports and scientific papers taken for each other. Five of those 13 letters have the word memorandum printed on them and most carry To, From and Subject lines, so some of these errors may be in the labels.
+* **The margin is a usable confidence.** On the most confident half of the test documents the model is right 99.4% of the time. A threshold chosen on out-of-fold predictions of the training documents keeps 514 of the 696 at 96.5% and leaves 182 on which the model is right only 52% of the time: about a quarter of the documents, where a stronger model or a person should decide.
+* **What the word model looks at.** Its heaviest words are "sent", "pm" and "subject" for emails, "dear" and "sincerely" for letters, "university" and "education" for resumes, "et al" and "receptor" for scientific papers, and "surgeon" and "warning" for advertisements, from the Surgeon General's warning printed on cigarette ads.
+
+**Receipt layouts without labels**
+
+* **The first rows of OCR text find the merchants.** Grouping the 200 test receipts by the characters of their first six rows gives 102 groups for 96 merchants: 94% of the pairs put together share a merchant, and 86% of the pairs that share one were put together (AMI 0.92). The representation and the cut were chosen on the dev and train receipts. Where the words sit on the page and a thumbnail of the scan did much worse there (AMI 0.58 and 0.48 against 0.91), so what a receipt says identifies its layout better than where its ink falls, at least with features this simple.
+* **The cheap extractors do worse on new layouts. The LLM does not.** 142 of the 200 test receipts come from a merchant that also has dev or train receipts. On those the ranker is right 85% of the time, and on the other 58 it is right 74% of the time (rules: 80% and 64%). Haiku reading the scan gets 96% and 98%. The same split can be made without labels: a receipt counts as a known layout when its nearest dev or train receipt is closer than the clustering cut, which agrees with the merchant labels on 171 of 200 receipts, and splits the ranker into 85% and 71%.
+* **The ranker did not memorise layouts.** Holding out whole merchants in cross-validation gives 80.5%, and whole groups found without labels 80.4%, against 80.6% for random receipts. The gap comes from the merchants themselves: with whole merchants held out, the ranker is right on 88% of receipts from merchants with five or more receipts and on 70% to 72% of rarer ones. Common chains print clean, regular receipts. A new layout is therefore a reason to ask the LLM, and the distance to the nearest known receipt flags one without labels.
 
 ### Stage 3: a learned ranker, then an LLM that reads the scan
 
@@ -90,6 +114,20 @@ The rules were written while looking only at 100 development receipts, then scor
 * **Upscaling 2x hurt and was more than twice as slow.** Deskewing barely changed anything, which suggests these receipts were scanned straight.
 <!-- results:end -->
 
+## How stage 4 works
+
+```
+OCR text of a page -> character n-grams inside words (TF-IDF) -> linear SVM -> class + margin
+      margin below the threshold?          -> a stronger model or a person decides
+
+OCR of a receipt -> characters of its first six rows (TF-IDF) -> cosine distance -> average-linkage clusters
+      nearest training receipt farther than the cut? -> a new layout
+```
+
+* **Document type** (`folio/classify.py`, `folio/evaluate_classify.py`): QS-OCR-Small is split once, stratified, into 2,786 training and 696 test documents. Six candidates (complement naive Bayes, and linear SVMs on word 1-2 grams, on character 2-5 grams inside words, or on both, at two regularisation strengths) are compared by five-fold cross-validation repeated twice, by macro F1, which weighs rare classes like common ones. The chosen one is fitted on all training documents and the test documents are scored once. The routing threshold on the margin is chosen on out-of-fold predictions. An LLM can be asked too (`--llm`), choosing from the classes through a JSON-schema enum.
+* **Layouts** (`folio/cluster.py`, `folio/evaluate_cluster.py`): four representations (the OCR words, the characters of the first six rows, a grid of where the words sit, a thumbnail of the scan), compared by cosine distance and grouped by average-linkage agglomerative clustering cut at a distance threshold. Merchant names from the labels, with chain branches and label typos merged, only score the groups: adjusted mutual information, homogeneity, completeness, and pairwise precision and recall.
+* **Grouped folds** (`folio/learn.py`): cross-validation can deal whole groups to folds, largest first, so a merchant or a layout found without labels never sits on both sides.
+
 ## How the learned stage works
 
 ```
@@ -139,7 +177,7 @@ Ubuntu or any Linux with Python 3.11 or newer:
 sudo apt install tesseract-ocr tesseract-ocr-spa
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt && pip install -e . --no-deps
-pytest -q                                   # 147 tests in a few seconds
+pytest -q                                   # 174 tests in a few seconds
 
 bash scripts/get_sroie.sh                   # 626 receipts into data/sroie (about 600 MB)
 folio ocr data/sroie/data/img/000.jpg --prep gray --psm 6
@@ -153,6 +191,10 @@ folio eval-extract --workers 2              # OCR cached in cache/ocr, writes re
 folio eval-learned                          # cross-validation, one test run, saves models/total_ranker.json
 folio extract data/sroie/data/img/097.jpg --ranker models/total_ranker.json
 
+bash scripts/get_tobacco_text.sh            # 3,482 OCR texts of Tobacco3482 into data/qs-ocr-small (2.4 MB)
+folio eval-classify                         # document types: cross-validation, one test run, results/classify_eval.md
+folio eval-cluster                          # receipt layouts without labels, results/cluster_eval.md
+
 # The LLM stage. With a local model, reading the OCR text (nothing leaves the machine):
 ollama pull qwen2.5:3b
 folio eval-llm --backend ollama --model qwen2.5:3b          # asks only about the receipts the cascade routes
@@ -161,6 +203,7 @@ pip install anthropic && export ANTHROPIC_API_KEY=...
 folio eval-llm --backend anthropic --input image --mode all   # the report above: Haiku reads all 200 test scans, about 6 cents
 folio eval-llm --backend anthropic --input image --mode all --guard   # with the guard: answers come from the cache
 folio extract data/sroie/data/img/097.jpg --ranker models/total_ranker.json --llm anthropic --llm-input image --guard
+folio eval-classify --llm anthropic        # also ask Haiku about the documents the classifier is unsure of
 ```
 
 ## Layout
@@ -181,7 +224,11 @@ folio/
   evaluate_learned.py  model choice by cross-validation and the test run
   llm.py          LLM backends, the JSON schema, the evidence check and the cascade
   evaluate_llm.py  scoring of the LLM and the cascade
-  cli.py          folio ocr, extract, eval-ocr, eval-extract, eval-learned and eval-llm
+  classify.py     document types from OCR text: the candidate classifiers and the LLM prompt
+  evaluate_classify.py  model choice by cross-validation, the test run and the report
+  cluster.py      receipt representations, layout clustering and merchant keys
+  evaluate_cluster.py  layout groups scored against merchants, known and new layouts, grouped folds
+  cli.py          folio ocr, extract and one eval-* command per experiment
 models/           the fitted ranker as JSON
 tests/            unit tests and end-to-end checks with drawn images, no dataset files
 scripts/          dataset downloads and the guard's design data
@@ -189,6 +236,8 @@ results/          experiment outputs
 ```
 
 ## Data
+
+[QS-OCR-Small](https://github.com/Quicksign/ocrized-text-dataset) (Quicksign, 2019) is the Tesseract 4 text of the Tobacco3482 dataset (Kumar et al., 2013): 3,482 scanned pages from the Truth Tobacco Industry Documents archive in ten classes (advertisement, email, form, letter, memo, news, note, report, resume and scientific paper). Stage 4 classifies document types on it, because SROIE holds only receipts. The download script pins the archive's checksum. The dataset has no licence of its own, so it is used for research and is not stored here. It is split once, stratified, into 2,786 training and 696 test documents.
 
 [SROIE](https://rrc.cvc.uab.es/?ch=13) (ICDAR 2019) has scanned receipts from Malaysia with line-level text boxes and four key fields: company, date, address and total. The download script uses the [zzzDavid/ICDAR-2019-SROIE](https://github.com/zzzDavid/ICDAR-2019-SROIE) mirror. The data is for research use and is not stored in this repository. The 626 receipts are split once: 100 for development (the stage 1 sample), 200 held out for testing, and the other 326 for training. The 326 stayed unused through stage 2 and became the ranker's training data in stage 3, so later changes are judged by cross-validation on them and by the one test run each method gets. Its transcriptions have some noise of their own (a box file may say `SDN BND` where the key file says `SDN BHD`), so even perfect OCR would not reach zero error.
 
