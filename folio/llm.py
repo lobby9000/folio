@@ -135,7 +135,8 @@ class AnthropicBackend:
             client = anthropic.Anthropic(max_retries=5, default_headers=headers)  # backs off on rate limits
         self.client, self.model, self.max_tokens = client, model, max_tokens
 
-    def ask(self, prompt: str, image: bytes | None = None, schema: dict | None = None) -> Answer:
+    def ask(self, prompt: str, image: bytes | None = None, schema: dict | None = None,
+            system: str | None = None) -> Answer:
         start = time.perf_counter()
         output_config: dict = {"format": {"type": "json_schema", "schema": schema or SCHEMA}}
         if self.thinking == "off":
@@ -146,7 +147,7 @@ class AnthropicBackend:
         response = self.client.messages.create(
             model=self.model,
             max_tokens=self.max_tokens,
-            system=SYSTEM,
+            system=system or SYSTEM,
             messages=[{"role": "user", "content": _content(prompt, image)}],
             extra_body={"output_config": output_config, "thinking": thinking},
         )
@@ -177,13 +178,14 @@ class OllamaBackend:
             self.host = "http://" + self.host
         self.timeout = timeout
 
-    def ask(self, prompt: str, image: bytes | None = None, schema: dict | None = None) -> Answer:
+    def ask(self, prompt: str, image: bytes | None = None, schema: dict | None = None,
+            system: str | None = None) -> Answer:
         user: dict = {"role": "user", "content": prompt}
         if image is not None:  # needs a vision model, such as qwen2.5vl
             user["images"] = [base64.b64encode(image).decode("ascii")]
         body = {
             "model": self.model,
-            "messages": [{"role": "system", "content": SYSTEM}, user],
+            "messages": [{"role": "system", "content": system or SYSTEM}, user],
             "format": schema or SCHEMA,
             "stream": False,
             "options": {"temperature": 0},
@@ -230,8 +232,9 @@ class CachedBackend:
         self.new_input_tokens = 0
         self.new_output_tokens = 0
 
-    def ask(self, key: str, prompt: str, image: bytes | None = None, schema: dict | None = None) -> Answer:
-        text = f"{PROMPT_VERSION}\n{SYSTEM}\n{prompt}"
+    def ask(self, key: str, prompt: str, image: bytes | None = None, schema: dict | None = None,
+            system: str | None = None) -> Answer:
+        text = f"{PROMPT_VERSION}\n{system or SYSTEM}\n{prompt}"
         if schema is not None:
             text += "\n" + json.dumps(schema, sort_keys=True)
         h = hashlib.sha256(text.encode())
@@ -244,7 +247,12 @@ class CachedBackend:
             if saved.get("prompt_sha") == digest:
                 return Answer(saved["answer"], saved["seconds"], saved.get("input_tokens"),
                               saved.get("output_tokens"))
-        answer = self.backend.ask(prompt, image, schema) if (image or schema) else self.backend.ask(prompt)
+        if system is not None:
+            answer = self.backend.ask(prompt, image, schema, system)
+        elif image is not None or schema is not None:
+            answer = self.backend.ask(prompt, image, schema)
+        else:
+            answer = self.backend.ask(prompt)
         self.calls += 1
         self.new_input_tokens += answer.input_tokens or 0
         self.new_output_tokens += answer.output_tokens or 0

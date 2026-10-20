@@ -1,5 +1,5 @@
-"""Command line: `folio ocr` and `folio extract` for one image, `folio eval-ocr` and
-`folio eval-extract` for the experiments on SROIE."""
+"""Command line: `folio ocr` and `folio extract` for one image, and one `folio eval-*`
+command per experiment."""
 
 from __future__ import annotations
 
@@ -11,8 +11,9 @@ from pathlib import Path
 import cv2
 import pytesseract
 
-from . import evaluate_extract, evaluate_learned, evaluate_llm
+from . import evaluate_classify, evaluate_extract, evaluate_learned, evaluate_llm
 from .cache import DEFAULT_CACHE, ocr_receipts
+from .classify import load_docs, split_docs
 from .evaluate import compare, evaluate, render_markdown, summarize, write_csv
 from .extract import EXTRACTORS
 from .learn import TotalRanker
@@ -255,6 +256,48 @@ def _cmd_eval_llm(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_eval_classify(args: argparse.Namespace) -> int:
+    docs = load_docs(Path(args.data))
+    if not docs:
+        print(f"No documents under {args.data}. Run: bash scripts/get_tobacco_text.sh", file=sys.stderr)
+        return 2
+    split = split_docs(docs, args.test_share, args.seed)
+    report = evaluate_classify.run(split["train"], split["test"], folds=args.folds, repeats=args.repeats,
+                                   log=lambda message: print(message, file=sys.stderr))
+    tag, cost = "", ""
+    if args.llm:
+        backend = BACKENDS[args.llm](**({"model": args.model} if args.model else {}))
+        cached = CachedBackend(backend, Path(args.llm_cache))
+
+        def ask(key, prompt, image=None, schema=None, system=None):
+            spent = cost_usd(backend.model, cached.new_input_tokens, cached.new_output_tokens)
+            if spent is not None and spent > args.max_usd:
+                raise SystemExit(f"Stopped: this run has spent about ${spent:.4f}, over --max-usd "
+                                 f"{args.max_usd}. Answers so far are cached: rerun to resume.")
+            return cached.ask(key, prompt, image, schema, system)
+
+        evaluate_classify.ask_llm(report.rows, split["test"], ask, args.mode)
+        tag = f"_{args.mode}_{backend.name}_{backend.label}".replace(":", "-").replace("/", "-")
+        asked = [r for r in report.rows if r.input_tokens]
+        total = cost_usd(backend.model, sum(r.input_tokens or 0 for r in asked),
+                         sum(r.output_tokens or 0 for r in asked))
+        cost = (f"Model `{backend.label}` through `{backend.name}`, {cached.calls} requests sent in this run "
+                f"(the rest came from the cache in `{args.llm_cache}`).")
+        if total is not None:
+            cost += f" Cost at list prices: ${total:.4f} for all the answers in this report."
+    out = Path(args.out)
+    evaluate_classify.write_csv(report.rows, out / f"classify_eval{tag}.csv")
+    header = (
+        f"Tesseract text of the Tobacco3482 documents (QS-OCR-Small, `{args.data}`): {len(docs)} documents "
+        f"in {len({d.label for d in docs})} classes, split once with seed {args.seed} into {report.n_train} "
+        f"for training and {report.n_test} held out for testing, the same share of every class in each."
+    )
+    md = evaluate_classify.render_markdown(report, header, cost)
+    (out / f"classify_eval{tag}.md").write_text(md, encoding="utf-8")
+    print(md)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="folio", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -342,12 +385,27 @@ def build_parser() -> argparse.ArgumentParser:
     p_llm.add_argument("--workers", type=int, default=2)
     p_llm.add_argument("--out", default="results")
     p_llm.set_defaults(func=_cmd_eval_llm)
+
+    p_cls = sub.add_parser("eval-classify", help="compare document-type classifiers on Tobacco3482 OCR text")
+    p_cls.add_argument("--data", default="data/qs-ocr-small", help="one folder of .txt files per class")
+    p_cls.add_argument("--test-share", type=float, default=0.2)
+    p_cls.add_argument("--seed", type=int, default=0)
+    p_cls.add_argument("--folds", type=int, default=5)
+    p_cls.add_argument("--repeats", type=int, default=2)
+    p_cls.add_argument("--llm", choices=sorted(BACKENDS), help="also ask this LLM for the document type")
+    p_cls.add_argument("--model", help="defaults: claude-haiku-5-5 for anthropic, qwen2.5:3b for ollama")
+    p_cls.add_argument("--mode", choices=["cascade", "all"], default="cascade",
+                       help="ask the LLM only about the documents the classifier is unsure of, or about all")
+    p_cls.add_argument("--max-usd", type=float, default=0.5)
+    p_cls.add_argument("--llm-cache", default="cache/llm-classify")
+    p_cls.add_argument("--out", default="results")
+    p_cls.set_defaults(func=_cmd_eval_classify, needs_tesseract=False)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    if not tesseract_available():
+    if getattr(args, "needs_tesseract", True) and not tesseract_available():
         print("Tesseract is not installed. On Ubuntu: sudo apt install tesseract-ocr tesseract-ocr-spa",
               file=sys.stderr)
         return 2
