@@ -21,6 +21,7 @@ stopped and resumed, and rerunning it costs nothing.
 
 from __future__ import annotations
 
+import base64
 import datetime as dt
 import hashlib
 import json
@@ -71,6 +72,36 @@ def build_prompt(lines: Sequence[str]) -> str:
     return INSTRUCTIONS.format(rows="\n".join(f"{i + 1}: {line}" for i, line in enumerate(lines)))
 
 
+# Reading the scan itself instead of the OCR text. The model quotes the line it read
+# each value from, since there are no OCR row numbers to cite.
+VISION_INSTRUCTIONS = (
+    "This is a scanned shop receipt from Malaysia.\n\n"
+    "Find two fields.\n"
+    "total: the final amount the customer paid, including tax and after any rounding. It is usually on a "
+    "line such as TOTAL, NETT TOTAL, GRAND TOTAL, TOTAL AMOUNT PAYABLE or TOTAL ROUNDED. It is not a "
+    "subtotal, a tax amount, the cash tendered or the change.\n"
+    "date: the date of the purchase.\n"
+    "For each field give the value exactly as printed and the whole line it is printed on. If a field is "
+    "not on the receipt, give empty strings."
+)
+
+VISION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "total": {"type": "string", "description": "the total exactly as printed, or empty"},
+        "total_line": {"type": "string", "description": "the whole line the total is printed on"},
+        "date": {"type": "string", "description": "the purchase date exactly as printed, or empty"},
+        "date_line": {"type": "string", "description": "the whole line the date is printed on"},
+    },
+    "required": ["total", "total_line", "date", "date_line"],
+    "additionalProperties": False,
+}
+
+
+def _media_type(image: bytes) -> str:
+    return "image/png" if image[:8] == b"\x89PNG\r\n\x1a\n" else "image/jpeg"
+
+
 @dataclass
 class Answer:
     data: dict
@@ -80,9 +111,22 @@ class Answer:
 
 
 class AnthropicBackend:
+    """Claude through the Messages API with structured outputs.
+
+    `thinking` is "off" (no reasoning tokens: cheapest and fastest) or an effort level,
+    "low", "medium" or "high", for adaptive thinking. Recent models think by default,
+    and their reasoning counts against `max_tokens` and is billed as output.
+    """
+
     name = "anthropic"
 
-    def __init__(self, model: str = "claude-haiku-5-5", client=None, max_tokens: int = 300):
+    def __init__(self, model: str = "claude-haiku-5-5", client=None, max_tokens: int | None = None,
+                 thinking: str = "off"):
+        if thinking not in ("off", "low", "medium", "high"):
+            raise ValueError(f"thinking must be off, low, medium or high, not {thinking!r}")
+        self.thinking = thinking
+        self.label = model if thinking == "off" else f"{model}-thinking-{thinking}"
+        max_tokens = max_tokens or (400 if thinking == "off" else 8000)
         if client is None:
             import anthropic  # optional dependency: pip install anthropic
 
@@ -91,36 +135,56 @@ class AnthropicBackend:
             client = anthropic.Anthropic(max_retries=5, default_headers=headers)  # backs off on rate limits
         self.client, self.model, self.max_tokens = client, model, max_tokens
 
-    def ask(self, prompt: str) -> Answer:
+    def ask(self, prompt: str, image: bytes | None = None, schema: dict | None = None) -> Answer:
         start = time.perf_counter()
+        output_config: dict = {"format": {"type": "json_schema", "schema": schema or SCHEMA}}
+        if self.thinking == "off":
+            thinking = {"type": "disabled"}
+        else:
+            thinking = {"type": "adaptive"}
+            output_config["effort"] = self.thinking
         response = self.client.messages.create(
             model=self.model,
             max_tokens=self.max_tokens,
             system=SYSTEM,
-            messages=[{"role": "user", "content": prompt}],
-            extra_body={"output_config": {"format": {"type": "json_schema", "schema": SCHEMA}}},
+            messages=[{"role": "user", "content": _content(prompt, image)}],
+            extra_body={"output_config": output_config, "thinking": thinking},
         )
-        text = next(block.text for block in response.content if block.type == "text")
+        text = next((block.text for block in response.content if block.type == "text"), None)
+        if text is None:
+            raise RuntimeError(f"no answer in the response (stop reason {response.stop_reason}); "
+                               "raise max_tokens or turn thinking off")
         usage = getattr(response, "usage", None)
         return Answer(json.loads(text), time.perf_counter() - start,
                       getattr(usage, "input_tokens", None), getattr(usage, "output_tokens", None))
+
+
+def _content(prompt: str, image: bytes | None):
+    if image is None:
+        return prompt
+    data = base64.b64encode(image).decode("ascii")
+    return [{"type": "image", "source": {"type": "base64", "media_type": _media_type(image), "data": data}},
+            {"type": "text", "text": prompt}]
 
 
 class OllamaBackend:
     name = "ollama"
 
     def __init__(self, model: str = "qwen2.5:3b", host: str | None = None, timeout: float = 300):
-        self.model = model
+        self.model = self.label = model
         self.host = (host or os.environ.get("OLLAMA_HOST") or "http://localhost:11434").rstrip("/")
         if not self.host.startswith("http"):
             self.host = "http://" + self.host
         self.timeout = timeout
 
-    def ask(self, prompt: str) -> Answer:
+    def ask(self, prompt: str, image: bytes | None = None, schema: dict | None = None) -> Answer:
+        user: dict = {"role": "user", "content": prompt}
+        if image is not None:  # needs a vision model, such as qwen2.5vl
+            user["images"] = [base64.b64encode(image).decode("ascii")]
         body = {
             "model": self.model,
-            "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": prompt}],
-            "format": SCHEMA,
+            "messages": [{"role": "system", "content": SYSTEM}, user],
+            "format": schema or SCHEMA,
             "stream": False,
             "options": {"temperature": 0},
         }
@@ -159,21 +223,28 @@ class CachedBackend:
 
     def __init__(self, backend, cache_dir: Path):
         self.backend = backend
-        model = getattr(backend, "model", "model").replace("/", "_").replace(":", "_")
+        label = getattr(backend, "label", getattr(backend, "model", "model"))
+        model = label.replace("/", "_").replace(":", "_")
         self.dir = Path(cache_dir) / f"{backend.name}__{model}"
         self.calls = 0  # requests actually sent, cache hits excluded
         self.new_input_tokens = 0
         self.new_output_tokens = 0
 
-    def ask(self, key: str, prompt: str) -> Answer:
-        digest = hashlib.sha256(f"{PROMPT_VERSION}\n{SYSTEM}\n{prompt}".encode()).hexdigest()[:16]
-        path = self.dir / f"{key}.json"
+    def ask(self, key: str, prompt: str, image: bytes | None = None, schema: dict | None = None) -> Answer:
+        text = f"{PROMPT_VERSION}\n{SYSTEM}\n{prompt}"
+        if schema is not None:
+            text += "\n" + json.dumps(schema, sort_keys=True)
+        h = hashlib.sha256(text.encode())
+        if image is not None:
+            h.update(image)
+        digest = h.hexdigest()[:16]
+        path = self.dir / (f"{key}.image.json" if image is not None else f"{key}.json")
         if path.exists():
             saved = json.loads(path.read_text(encoding="utf-8"))
             if saved.get("prompt_sha") == digest:
                 return Answer(saved["answer"], saved["seconds"], saved.get("input_tokens"),
                               saved.get("output_tokens"))
-        answer = self.backend.ask(prompt)
+        answer = self.backend.ask(prompt, image, schema) if (image or schema) else self.backend.ask(prompt)
         self.calls += 1
         self.new_input_tokens += answer.input_tokens or 0
         self.new_output_tokens += answer.output_tokens or 0
@@ -189,9 +260,11 @@ class Checked:
     """One field of a model answer after checking it against the text."""
 
     value: Decimal | dt.date | None
-    status: str  # "grounded", "wrong row", "not in the text", "unreadable", "no answer"
-    row: int | None = None  # 0-based row where the value is printed
+    # "grounded", "wrong row", "not in the text", "read from the image", "unreadable" or "no answer"
+    status: str
+    row: int | None = None  # 0-based OCR row where the value is printed, if it is
     claimed: str = ""
+    line: str = ""  # the line the model quoted, when it read the image
 
 
 def _values(field_name: str, line: str) -> set:
@@ -213,6 +286,24 @@ def check_field(field_name: str, value_text: str, row: int, lines: Sequence[str]
         if value in _values(field_name, line):
             return Checked(value, "wrong row", i, value_text)
     return Checked(None, "not in the text", claimed=value_text)
+
+
+def check_image_field(field_name: str, value_text: str, line: str, lines: Sequence[str]) -> Checked:
+    """A value read from the scan. There is no OCR row to hold it to, so it is kept if it
+    parses, and the OCR row that also shows it is recorded when there is one."""
+    value_text = (value_text or "").strip()
+    if not value_text:
+        return Checked(None, "no answer")
+    value = parse_amount(value_text) if field_name == "total" else parse_date(value_text)
+    if value is None:
+        return Checked(None, "unreadable", claimed=value_text, line=line)
+    row = next((i for i, text in enumerate(lines) if value in _values(field_name, text)), None)
+    return Checked(value, "read from the image", row, value_text, line)
+
+
+def check_image_answer(data: dict, lines: Sequence[str]) -> dict[str, Checked]:
+    return {f: check_image_field(f, str(data.get(f, "")), str(data.get(f"{f}_line", "")), lines)
+            for f in ("total", "date")}
 
 
 def check_answer(data: dict, lines: Sequence[str]) -> dict[str, Checked]:
@@ -238,28 +329,52 @@ class Routed:
     answer: Answer | None = None
 
 
+def consult_text(ask, lines: Sequence[str]):
+    """Ask about the OCR rows; returns the answer and its fields checked against the text."""
+    answer = ask(build_prompt(lines))
+    return answer, check_answer(answer.data, lines)
+
+
+def consult_image(ask, image: bytes, lines: Sequence[str]):
+    """Ask about the scan itself; the OCR text is only used to note where a value also appears."""
+    answer = ask(VISION_INSTRUCTIONS, image, VISION_SCHEMA)
+    return answer, check_image_answer(answer.data, lines)
+
+
 def cascade(lines: Sequence[str], rules_total: Extraction | None, rules_date: Extraction | None,
-            ranked: Extraction | None, ask, threshold: float = 0.95) -> Routed:
+            ranked: Extraction | None, consult, threshold: float = 0.95) -> Routed:
     """Accept the cheap answer when it is trustworthy, ask the model otherwise.
 
-    1. The rules' total matches cash minus change: keep it.
-    2. The ranker is confident (score at or above `threshold`): keep its total.
-    3. Otherwise ask the model (`ask(prompt) -> Answer`). A grounded total replaces the
-       ranker's. The model's date is used only when the rules found none.
+    The total is trusted when the rules' total matches cash minus change, or when the
+    ranker is confident (score at or above `threshold`). The model is consulted when the
+    total is not trusted, or when the rules found no date. `consult()` returns the model's
+    answer and its checked fields (`consult_text` or `consult_image`).
+
+    When the model is consulted, its accepted total replaces the ranker's (only if the
+    total was not trusted), and its accepted date replaces the rules' date.
     """
     if rules_total is not None and rules_total.checked:
-        return Routed(rules_total, rules_date, "confirmed by cash")
-    if ranked is not None and ranked.score is not None and ranked.score >= threshold:
-        return Routed(ranked, rules_date, "confident ranker")
-    answer = ask(build_prompt(lines))
-    checked = check_answer(answer.data, lines)
-    total, date = ranked, rules_date
+        trusted, route = rules_total, "confirmed by cash"
+    elif ranked is not None and ranked.score is not None and ranked.score >= threshold:
+        trusted, route = ranked, "confident ranker"
+    else:
+        trusted, route = None, "llm"
+    if trusted is not None and rules_date is not None:
+        return Routed(trusted, rules_date, route)
+
+    answer, checked = consult()
     paid = cash_minus_change(lines)
+
+    def extraction(c: Checked) -> Extraction:
+        row = -1 if c.row is None else c.row
+        evidence = c.line if c.row is None else lines[c.row]
+        return Extraction(c.value, row, evidence, f"llm ({c.status})")
+
+    total = trusted if trusted is not None else ranked
     t = checked["total"]
-    if t.value is not None:
-        total = Extraction(t.value, t.row, lines[t.row], f"llm ({t.status})",
-                           None if paid is None else paid == t.value)
+    if trusted is None and t.value is not None:
+        e = extraction(t)
+        total = Extraction(e.value, e.line, e.evidence, e.rule, None if paid is None else paid == t.value)
     d = checked["date"]
-    if date is None and d.value is not None:
-        date = Extraction(d.value, d.row, lines[d.row], f"llm ({d.status})")
-    return Routed(total, date, "llm", checked, answer)
+    date = extraction(d) if d.value is not None else rules_date
+    return Routed(total, date, route if trusted is None else "llm for the date", checked, answer)

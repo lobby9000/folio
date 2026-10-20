@@ -16,7 +16,7 @@ from .cache import DEFAULT_CACHE, ocr_receipts
 from .evaluate import compare, evaluate, render_markdown, summarize, write_csv
 from .extract import EXTRACTORS
 from .learn import TotalRanker
-from .llm import BACKENDS, CachedBackend, cascade, cost_usd
+from .llm import BACKENDS, CachedBackend, cascade, consult_image, consult_text, cost_usd
 from .ocr import OcrConfig, run_ocr, tesseract_available
 from .preprocess import PIPELINES
 from .sroie import SPLITS, load_receipts, load_split
@@ -86,7 +86,13 @@ def _cmd_extract(args: argparse.Namespace) -> int:
         found["total"] = ranked
         if args.llm:
             backend = BACKENDS[args.llm](**({"model": args.llm_model} if args.llm_model else {}))
-            routed = cascade(lines, EXTRACTORS["rules"]["total"](lines), found["date"], ranked, backend.ask)
+            if args.llm_input == "image":
+                def consult():
+                    return consult_image(backend.ask, Path(args.image).read_bytes(), lines)
+            else:
+                def consult():
+                    return consult_text(backend.ask, lines)
+            routed = cascade(lines, EXTRACTORS["rules"]["total"](lines), found["date"], ranked, consult)
             found["total"], found["date"] = routed.total, routed.date
             print(f"[route: {routed.route}]", file=sys.stderr)
     if args.json:
@@ -181,11 +187,14 @@ def _cmd_eval_llm(args: argparse.Namespace) -> int:
     ocr = ocr_receipts(receipts, args.prep, OcrConfig(lang=args.lang, psm=args.psm), Path(args.cache),
                        args.workers)
     ranker = TotalRanker.load(Path(args.ranker))
-    backend = BACKENDS[args.backend](**({"model": args.model} if args.model else {}))
+    options = {"model": args.model} if args.model else {}
+    if args.backend == "anthropic":
+        options["thinking"] = args.thinking
+    backend = BACKENDS[args.backend](**options)
     cached = CachedBackend(backend, Path(args.llm_cache))
     asked = 0
 
-    def ask(receipt_id: str, prompt: str):
+    def ask(receipt_id: str, prompt: str, image=None, schema=None):
         nonlocal asked
         spent = cost_usd(backend.model, cached.new_input_tokens, cached.new_output_tokens)
         if spent is not None and spent > args.max_usd:
@@ -193,14 +202,18 @@ def _cmd_eval_llm(args: argparse.Namespace) -> int:
                              f"{args.max_usd}. Answers so far are cached, so rerunning resumes from here.")
         asked += 1
         print(f"  asking {backend.name} about receipt {receipt_id} ({asked})", file=sys.stderr)
-        return cached.ask(receipt_id, prompt)
+        return cached.ask(receipt_id, prompt, image, schema)
 
-    rows = evaluate_llm.evaluate([(r, ocr[r.id]) for r in receipts], ranker, ask, args.mode, args.threshold)
-    tag = f"{backend.name}_{backend.model}".replace(":", "-").replace("/", "-")
+    rows = evaluate_llm.evaluate([(r, ocr[r.id]) for r in receipts], ranker, ask, args.mode, args.threshold,
+                                 args.input)
+    tag = f"{args.split}_{args.mode}_{args.input}_{backend.name}_{backend.label}"
+    tag = tag.replace(":", "-").replace("/", "-")
     out = Path(args.out)
     evaluate_llm.write_csv(rows, out / f"llm_eval_{tag}.csv")
     header = (
-        f"Model `{backend.model}` through `{backend.name}`, mode `{args.mode}`, {len(rows)} labelled "
+        f"Model `{backend.label}` through `{backend.name}` reading the "
+        f"{'scan' if args.input == 'image' else 'OCR text'}, "
+        f"mode `{args.mode}`, {len(rows)} labelled "
         "receipts "
         f"of the `{args.split}` split. OCR: `{args.prep}`, page mode {args.psm}. Ranker: `{args.ranker}`, "
         f"routing threshold {args.threshold}. Requests sent in this run: {cached.calls} (the rest came from "
@@ -213,7 +226,7 @@ def _cmd_eval_llm(args: argparse.Namespace) -> int:
     if total is not None:
         header += (f" Cost at list prices: ${total:.4f} for all the answers in this report, "
                    f"${run:.4f} of it spent in this run.")
-    report = evaluate_llm.render_markdown(rows, header)
+    report = evaluate_llm.render_markdown(rows, header, args.input)
     (out / f"llm_eval_{tag}.md").write_text(report, encoding="utf-8")
     print(report)
     return 0
@@ -251,6 +264,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_ext.add_argument("--ranker", help="answer the total with a saved ranker, e.g. models/total_ranker.json")
     p_ext.add_argument("--llm", choices=sorted(BACKENDS), help="run the cascade, asking this LLM when unsure")
     p_ext.add_argument("--llm-model", help="model name for --llm, e.g. claude-haiku-5-5 or qwen2.5:3b")
+    p_ext.add_argument("--llm-input", choices=["text", "image"], default="text",
+                       help="the LLM reads the OCR text or the scan itself")
     p_ext.set_defaults(func=_cmd_extract)
 
     p_eext = sub.add_parser("eval-extract", help="score the total and date extractors on SROIE")
@@ -279,6 +294,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_llm = sub.add_parser("eval-llm", help="score the LLM extractor and the cascade")
     p_llm.add_argument("--backend", choices=sorted(BACKENDS), default="ollama")
     p_llm.add_argument("--model", help="defaults: claude-haiku-5-5 for anthropic, qwen2.5:3b for ollama")
+    p_llm.add_argument("--thinking", choices=["off", "low", "medium", "high"], default="off",
+                       help="Claude only: no reasoning (off) or adaptive thinking at this effort")
+    p_llm.add_argument("--input", choices=["text", "image"], default="text",
+                       help="the model reads the OCR text (with row citations) or the scanned image")
     p_llm.add_argument("--mode", choices=["cascade", "all"], default="cascade",
                        help="ask the model only when unsure (cascade) or about every receipt (all)")
     p_llm.add_argument("--split", choices=SPLITS, default="test")

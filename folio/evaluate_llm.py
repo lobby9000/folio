@@ -15,12 +15,13 @@ import csv
 import statistics
 from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, fields
+from pathlib import Path
 
 from .evaluate import exact_mcnemar
 from .evaluate_extract import parse_label_date
 from .extract import extract_date, extract_total
 from .learn import TotalRanker
-from .llm import Answer, Routed, build_prompt, cascade, check_answer
+from .llm import Answer, Routed, cascade, consult_image, consult_text
 from .metrics import wilson_interval
 from .normalize import parse_amount
 from .ocr import OcrResult
@@ -53,11 +54,13 @@ class LlmRow:
 def evaluate(
     receipts: Sequence[tuple[Receipt, OcrResult]],
     ranker: TotalRanker,
-    ask: Callable[[str, str], Answer],
+    ask: Callable[..., Answer],
     mode: str = "cascade",
     threshold: float = 0.95,
+    source: str = "text",
 ) -> list[LlmRow]:
-    """`ask(receipt_id, prompt)` returns the model's answer (cached or not)."""
+    """`ask(receipt_id, prompt, image=None, schema=None)` returns the model's answer, cached or
+    not. `source` is "text" (the model reads the OCR rows) or "image" (it reads the scan)."""
     rows = []
     for receipt, ocr in receipts:
         if not receipt.fields["total"]:
@@ -68,14 +71,18 @@ def evaluate(
         rules_total, rules_date = extract_total(lines), extract_date(lines)
         ranked = ranker.extract(ocr.rows)
 
-        asked_first = ask(receipt.id, build_prompt(lines)) if mode == "all" else None
+        def consult(receipt: Receipt = receipt, lines: list[str] = lines):
+            def ask_this(prompt, image=None, schema=None):
+                return ask(receipt.id, prompt, image, schema)
 
-        def ask_once(prompt: str, rid: str = receipt.id, ready: Answer | None = asked_first) -> Answer:
-            return ready if ready is not None else ask(rid, prompt)
+            if source == "image":
+                return consult_image(ask_this, Path(receipt.image_path).read_bytes(), lines)
+            return consult_text(ask_this, lines)
 
-        routed: Routed = cascade(lines, rules_total, rules_date, ranked, ask_once, threshold)
-        answer = asked_first or routed.answer
-        checked = check_answer(answer.data, lines) if answer is not None else {}
+        first = consult() if mode == "all" else None
+        routed: Routed = cascade(lines, rules_total, rules_date, ranked,
+                                 (lambda first=first: first) if first is not None else consult, threshold)
+        answer, checked = first if first is not None else (routed.answer, routed.llm)
         t, d = checked.get("total"), checked.get("date")
         rows.append(LlmRow(
             receipt=receipt.id, gold_total=receipt.fields["total"], gold_date=receipt.fields["date"],
@@ -116,7 +123,7 @@ def _rate(k: int, n: int) -> str:
     return f"{k} of {n} ({100 * k / n:.0f}%) [{100 * lo:.0f}%, {100 * hi:.0f}%]"
 
 
-def render_markdown(rows: Sequence[LlmRow], header: str = "") -> str:
+def render_markdown(rows: Sequence[LlmRow], header: str = "", source: str = "text") -> str:
     n = len(rows)
     asked = [r for r in rows if r.asked]
     routed = [r for r in rows if r.route == "llm"]
@@ -130,7 +137,8 @@ def render_markdown(rows: Sequence[LlmRow], header: str = "") -> str:
               f"{_rate(sum(r.final_total_ok for r in rows), n)} |"]
     if len(asked) == n:
         right = sum(bool(r.llm_total_ok) for r in rows)
-        lines.append(f"| LLM alone (grounded answers only) | {_rate(right, n)} |")
+        name = "LLM alone, reading the scan" if source == "image" else "LLM alone (grounded answers only)"
+        lines.append(f"| {name} | {_rate(right, n)} |")
     only_c = sum(r.final_total_ok and not r.ranker_total_ok for r in rows)
     only_r = sum(r.ranker_total_ok and not r.final_total_ok for r in rows)
     lines += ["", f"Cascade against the ranker, paired: only the cascade right on {only_c}, only the ranker "
@@ -138,7 +146,7 @@ def render_markdown(rows: Sequence[LlmRow], header: str = "") -> str:
               f"on {only_r} (exact McNemar p = {exact_mcnemar(only_c, only_r):.2g}).", ""]
 
     lines += ["## Where each receipt went", "", "| Route | Receipts | Total correct |", "|---|---|---|"]
-    for route in ("confirmed by cash", "confident ranker", "llm"):
+    for route in ("confirmed by cash", "confident ranker", "llm", "llm for the date"):
         group = [r for r in rows if r.route == route]
         right = sum(r.final_total_ok for r in group)
         lines.append(f"| {route} | {len(group)} | {_rate(right, len(group))} |")
@@ -147,18 +155,25 @@ def render_markdown(rows: Sequence[LlmRow], header: str = "") -> str:
               "right on "
                   f"{sum(r.ranker_total_ok for r in routed)}.", ""]
 
-    lines += ["## What the model answered", "",
-              "A total is kept only if its value is printed somewhere in the OCR text.", "",
+    rule = ("A value read from the scan is kept if it parses as an amount or a date." if source == "image"
+            else "A total is kept only if its value is printed somewhere in the OCR text.")
+    lines += ["## What the model answered", "", rule, "",
               "| Status of the model's total | Answers | Right value |", "|---|---|---|"]
-    for status in ("grounded", "wrong row", "not in the text", "unreadable", "no answer"):
+    statuses = ("grounded", "wrong row", "not in the text", "read from the image", "unreadable", "no answer")
+    for status in statuses:
         group = [r for r in asked if r.llm_total_status == status]
         if group:
             lines.append(f"| {status} | {len(group)} | {sum(bool(r.llm_total_ok) for r in group)} |")
 
     dated = [r for r in rows if r.final_date_ok is not None]
     date_ok = sum(bool(r.final_date_ok) for r in dated)
-    lines += ["", "## Date", "", f"Cascade date correct: {_rate(date_ok, len(dated))}. "
-              "The model's date is used only when the rules found none.", ""]
+    lines += ["", "## Date", "", "| Extractor | Date correct [95% CI] |", "|---|---|",
+              "| Cascade: the rules' date, or the model's when it was asked "
+              f"| {_rate(date_ok, len(dated))} |"]
+    llm_dated = [r for r in rows if r.llm_date_ok is not None]
+    if len(asked) == n and llm_dated:
+        lines.append(f"| LLM alone | {_rate(sum(bool(r.llm_date_ok) for r in llm_dated), len(llm_dated))} |")
+    lines += ["", "The cascade also asks the model when the rules found no date.", ""]
 
     secs = [r.seconds for r in asked if r.seconds is not None]
     tin = [r.input_tokens for r in asked if r.input_tokens]

@@ -15,6 +15,7 @@ from folio.extract import Extraction
 from folio.learn import TotalRanker
 from folio.llm import (
     SCHEMA,
+    VISION_SCHEMA,
     Answer,
     AnthropicBackend,
     CachedBackend,
@@ -23,6 +24,9 @@ from folio.llm import (
     cascade,
     check_answer,
     check_field,
+    check_image_answer,
+    consult_image,
+    consult_text,
 )
 from folio.ocr import OcrResult
 from folio.sroie import Receipt
@@ -94,19 +98,26 @@ def rules(value: str, checked: bool | None) -> Extraction:
 
 def test_cascade_trusts_the_cash_check_and_a_confident_ranker():
     never = FakeBackend(answer())
-    got = cascade(LINES, rules("12.25", True), None, ranked("12.27", 0.5), never.ask)
+
+    def consult():
+        return consult_text(never.ask, LINES)
+
+    date = Extraction(dt.date(2026, 10, 19), 1, LINES[1], "date after a label")
+    got = cascade(LINES, rules("12.25", True), date, ranked("12.27", 0.5), consult)
     assert (got.route, got.total.value, never.prompts) == ("confirmed by cash", Decimal("12.25"), [])
-    got = cascade(LINES, rules("12.27", False), None, ranked("12.25", 0.99), never.ask)
+    got = cascade(LINES, rules("12.27", False), date, ranked("12.25", 0.99), consult)
     assert (got.route, got.total.value, never.prompts) == ("confident ranker", Decimal("12.25"), [])
 
 
 def test_cascade_asks_when_unsure_and_keeps_only_grounded_answers():
     date = Extraction(dt.date(2026, 10, 19), 1, LINES[1], "date after a label")
-    got = cascade(LINES, rules("12.27", False), date, ranked("12.27", 0.4), FakeBackend(answer()).ask)
+    got = cascade(LINES, rules("12.27", False), date, ranked("12.27", 0.4),
+                  lambda: consult_text(FakeBackend(answer()).ask, LINES))
     assert (got.route, got.total.value, got.total.rule, got.total.checked) == (
         "llm", Decimal("12.25"), "llm (grounded)", True)
-    assert got.date is date  # the rules found a date, so the model's is not needed
-    invented = cascade(LINES, None, None, ranked("12.27", 0.4), FakeBackend(answer(total="31.45")).ask)
+    assert got.date.value == date.value and got.date.rule == "llm (grounded)"  # asked anyway: its date wins
+    invented = cascade(LINES, None, None, ranked("12.27", 0.4),
+                       lambda: consult_text(FakeBackend(answer(total="31.45")).ask, LINES))
     assert invented.total.value == Decimal("12.27") and invented.llm["total"].status == "not in the text"
     assert invented.date.value == dt.date(2026, 10, 19) and invented.date.rule == "llm (grounded)"
 
@@ -133,6 +144,7 @@ def test_anthropic_backend_sends_the_schema_through_the_real_sdk():
     assert got.data == answer().data and (got.input_tokens, got.output_tokens) == (321, 24)
     assert seen["model"] == "claude-haiku-5-5" and seen["system"].startswith("You read OCR text")
     assert seen["output_config"] == {"format": {"type": "json_schema", "schema": SCHEMA}}
+    assert seen["thinking"] == {"type": "disabled"}
     assert "4: TOTAL RM 12.25" in seen["messages"][0]["content"]
 
 
@@ -174,7 +186,7 @@ def test_evaluation_reports_routes_and_the_model_alone():
     ocr = OcrResult([b for row in rows for b in row])
     calls = []
 
-    def ask(rid, prompt):
+    def ask(rid, prompt, image=None, schema=None):
         calls.append(rid)
         return answer(total="9.95", total_row=2, date="", date_row=0)
 
@@ -182,7 +194,7 @@ def test_evaluation_reports_routes_and_the_model_alone():
     all_rows = evaluate([(receipt, ocr)], ranker, ask, mode="all", threshold=0.0)
     assert calls == ["r1", "r1"]
     assert cascade_rows[0].route == "llm" and cascade_rows[0].final_total_ok and cascade_rows[0].llm_total_ok
-    assert all_rows[0].route == "confident ranker" and all_rows[0].asked
+    assert all_rows[0].route == "llm for the date" and all_rows[0].asked  # no date on this receipt
     md = render_markdown(all_rows, "header")
     assert "| LLM alone (grounded answers only) | 1 of 1" in md and "## Cost" in md
 
@@ -197,3 +209,91 @@ def test_list_price_cost_and_new_request_accounting(tmp_path):
     cached.ask("r1", "a prompt")
     cached.ask("r1", "a prompt")  # from the cache: free
     assert (cached.calls, cached.new_input_tokens, cached.new_output_tokens) == (1, 300, 20)
+
+
+def test_anthropic_thinking_options():
+    class Client:
+        def __init__(self):
+            self.messages = self
+            self.kwargs = None
+
+        def create(self, **kwargs):
+            from types import SimpleNamespace
+
+            self.kwargs = kwargs
+            text = SimpleNamespace(type="text", text=json.dumps(answer().data))
+            blocks = [SimpleNamespace(type="thinking"), text]
+            return SimpleNamespace(content=blocks, stop_reason="end_turn", usage=None)
+
+    client = Client()
+    backend = AnthropicBackend(client=client, thinking="low")
+    assert backend.ask("p").data == answer().data and backend.label == "claude-haiku-5-5-thinking-low"
+    body = client.kwargs["extra_body"]
+    assert body["thinking"] == {"type": "adaptive"} and body["output_config"]["effort"] == "low"
+    assert client.kwargs["max_tokens"] == 8000
+    with pytest.raises(ValueError):
+        AnthropicBackend(client=client, thinking="max")
+
+
+class ImageBackend:
+    name, model, label = "fake", "fake-vision", "fake-vision"
+
+    def __init__(self, reply: dict):
+        self.reply, self.seen = reply, []
+
+    def ask(self, prompt, image=None, schema=None):
+        self.seen.append((prompt, image, schema))
+        return Answer(self.reply, 0.4, 900, 30)
+
+
+def test_reading_the_scan_keeps_values_ocr_misread():
+    lines = ["FOLIO MART", "Total Ri 3145", "Cash 50.00"]  # OCR lost the decimal point
+    reply = {"total": "RM 31.45", "total_line": "Total RM 31.45",
+             "date": "19/10/2026", "date_line": "19/10/2026 10:22"}
+    backend = ImageBackend(reply)
+    answer, checked = consult_image(backend.ask, b"\xff\xd8fake-jpeg", lines)
+    assert backend.seen[0][1] == b"\xff\xd8fake-jpeg" and backend.seen[0][2] == VISION_SCHEMA
+    assert (checked["total"].status, checked["total"].value, checked["total"].row) == (
+        "read from the image", Decimal("31.45"), None)
+    got = cascade(lines, None, None, ranked("50.00", 0.3), lambda: (answer, checked))
+    assert got.total.value == Decimal("31.45") and got.total.line == -1
+    assert got.total.evidence == "Total RM 31.45"
+    assert check_image_answer({"total": "", "date": "x"}, lines)["date"].status == "unreadable"
+
+
+def test_image_and_text_answers_are_cached_apart(tmp_path):
+    empty = {"total": "1.00", "total_line": "", "date": "", "date_line": ""}
+    cached = CachedBackend(ImageBackend(empty), tmp_path)
+    cached.ask("r1", "prompt", b"img", VISION_SCHEMA)
+    cached.ask("r1", "prompt", b"img", VISION_SCHEMA)
+    cached.ask("r1", "prompt", b"other image", VISION_SCHEMA)
+    assert cached.calls == 2 and (tmp_path / "fake__fake-vision" / "r1.image.json").exists()
+
+
+def test_anthropic_backend_sends_the_image_as_base64():
+    class Client:
+        def __init__(self):
+            self.messages, self.kwargs = self, None
+
+        def create(self, **kwargs):
+            from types import SimpleNamespace
+
+            self.kwargs = kwargs
+            text = SimpleNamespace(type="text", text=json.dumps({"total": "", "total_line": "", "date": "",
+                                                                 "date_line": ""}))
+            return SimpleNamespace(content=[text], stop_reason="end_turn", usage=None)
+
+    client = Client()
+    AnthropicBackend(client=client).ask("read it", b"\x89PNG\r\n\x1a\nrest", VISION_SCHEMA)
+    content = client.kwargs["messages"][0]["content"]
+    assert content[0]["source"]["media_type"] == "image/png"
+    assert content[1] == {"type": "text", "text": "read it"}
+    assert client.kwargs["extra_body"]["output_config"]["format"]["schema"] == VISION_SCHEMA
+
+
+def test_a_trusted_total_without_a_date_still_asks_for_the_date():
+    backend = FakeBackend(answer(total="99.99"))  # its total is ignored: the cash check already settled it
+    got = cascade(LINES, rules("12.25", True), None, ranked("12.27", 0.5),
+                  lambda: consult_text(backend.ask, LINES))
+    assert got.route == "llm for the date" and got.total.value == Decimal("12.25")
+    assert got.date.value == dt.date(2026, 10, 19) and len(backend.prompts) == 1
