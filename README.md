@@ -47,9 +47,14 @@ Costs are at list prices: $0.10 per million input tokens and $0.50 per million o
 * **The cascade makes 89 calls for 200 receipts.** It keeps the rules' total when it matches cash minus change (71 receipts) and the ranker's when its score is at least 0.95 (53 receipts), a threshold chosen on the training receipts. It asks Haiku about the other 76, and about 13 of the trusted ones because the rules found no date. It finds 94% of totals, right on 25 receipts where the ranker is wrong and wrong on 1 where the ranker is right (exact McNemar p = 8e-07).
 * **Asking about every receipt is still more accurate.** The model alone is right on 8 receipts where the cascade is wrong, against 1 the other way (p = 0.04), for $0.30 instead of $0.13 per 1,000 receipts. It also reads 8 dates right that the cascade takes from the rules and gets wrong. At these prices the cascade pays off when the number of calls is the limit, as under an API rate limit or when fewer receipts should leave the machine.
 * **The trusted routes fail on digits, not on lines.** In all 8 of those receipts OCR had misread or dropped a digit in the lines the cascade relied on (102.00 read as 702.00, 104.00 as 404.00, a cash payment of 94.00 as 4.00). The ranker's score says how sure it is of the line, and a wrong digit on the right line looks just as sure.
-* **The cash check has a blind spot.** When the rules find no total line, one of their fallbacks is cash minus change, and that answer then counts as confirmed by the same two lines. On the test receipts, a total read from a total line that matched cash minus change was right 62 times out of 62, and the fallback 7 times out of 9. The training receipts show the same gap (100 of 103 against 13 of 16), so the next version should trust the check only for a total read from a total line. This was found while reading the test misses, so scoring the fix will need receipts the project has not looked at.
+* **The cash check has a blind spot.** When the rules find no total line, one of their fallbacks is cash minus change, and that answer then counts as confirmed by the same two lines. On the test receipts, a total read from a total line that matched cash minus change was right 62 times out of 62, and the fallback 7 times out of 9. The training receipts show the same gap (100 of 103 against 13 of 16), so the guard below trusts the check only for a total read from a total line.
 * **Where the model reading the scan fails.** It misread a digit on 3 of the 200 receipts (one by a single cent) and took the wrong line on 2: an amount before tax from the tax summary, and an "accepted total" that was the cash handed over. On the sixth it read the printed grand total, 3.90, where the label records the 25.60 subtotal before a deduction. Of its 2 missed dates, 1 is the check's fault: the model read 25032018 correctly, and the check does not parse dates printed without separators.
 * **Cost and speed.** A scan costs about 2,700 input tokens, and the median answer took 1.4 s with thinking turned off (Haiku 5.5 thinks by default). Every run of this stage, development receipts included, cost about $0.13. Answers are cached on disk under a hash of the prompt and the image, so regenerating a report sends no requests, and `--max-usd` stops a run before it spends more than a set amount.
+
+**After stage 3: a guard against misread digits**
+
+* **The design receipts fail the same way.** On the dev and train receipts, with out-of-fold ranker scores, the cascade trusts 270 totals and gets 11 wrong, all of them misread digits. OCR word confidence separates them badly: catching 8 of the 11 would send 75 right answers back to the LLM. Two other signals work better together: a second OCR pass with Otsu binarisation that does not read the same value, and a cash check that only confirms its own fallback. Together they catch 7 of the 11 and send back 32 right answers: 39 more calls for 425 receipts. Report: [`results/guard_design.md`](results/guard_design.md).
+* **With the guard the cascade finds 96% of totals.** On the test receipts it is right on 191 of 200 with 103 calls, against 187 with 89 calls without the guard and 194 asking about every receipt ([report](results/llm_eval_test_all_image_anthropic_claude-haiku-5-5_guard.md)). This number is post hoc: the guard was designed after reading the test misses, so the test split is no longer blind for it. The answers came from the cache, so it cost nothing. The misses left are digits that both OCR passes read the same wrong way, and only a second look at the image fixes those.
 
 ### Stage 2: extracting the total and the date
 
@@ -134,7 +139,7 @@ Ubuntu or any Linux with Python 3.11 or newer:
 sudo apt install tesseract-ocr tesseract-ocr-spa
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt && pip install -e . --no-deps
-pytest -q                                   # 144 tests in a few seconds
+pytest -q                                   # 147 tests in a few seconds
 
 bash scripts/get_sroie.sh                   # 626 receipts into data/sroie (about 600 MB)
 folio ocr data/sroie/data/img/000.jpg --prep gray --psm 6
@@ -154,7 +159,8 @@ folio eval-llm --backend ollama --model qwen2.5:3b          # asks only about th
 # Or with the Claude API (if the API asks for a workspace, also export ANTHROPIC_WORKSPACE_ID):
 pip install anthropic && export ANTHROPIC_API_KEY=...
 folio eval-llm --backend anthropic --input image --mode all   # the report above: Haiku reads all 200 test scans, about 6 cents
-folio extract data/sroie/data/img/097.jpg --ranker models/total_ranker.json --llm anthropic --llm-input image
+folio eval-llm --backend anthropic --input image --mode all --guard   # with the guard: answers come from the cache
+folio extract data/sroie/data/img/097.jpg --ranker models/total_ranker.json --llm anthropic --llm-input image --guard
 ```
 
 ## Layout
@@ -178,7 +184,7 @@ folio/
   cli.py          folio ocr, extract, eval-ocr, eval-extract, eval-learned and eval-llm
 models/           the fitted ranker as JSON
 tests/            unit tests and end-to-end checks with drawn images, no dataset files
-scripts/          dataset download
+scripts/          dataset downloads and the guard's design data
 results/          experiment outputs
 ```
 

@@ -16,7 +16,16 @@ from .cache import DEFAULT_CACHE, ocr_receipts
 from .evaluate import compare, evaluate, render_markdown, summarize, write_csv
 from .extract import EXTRACTORS
 from .learn import TotalRanker
-from .llm import BACKENDS, CachedBackend, cascade, consult_image, consult_text, cost_usd
+from .llm import (
+    BACKENDS,
+    SECOND_READING,
+    CachedBackend,
+    amounts_read,
+    cascade,
+    consult_image,
+    consult_text,
+    cost_usd,
+)
 from .ocr import OcrConfig, run_ocr, tesseract_available
 from .preprocess import PIPELINES
 from .sroie import SPLITS, load_receipts, load_split
@@ -92,7 +101,12 @@ def _cmd_extract(args: argparse.Namespace) -> int:
             else:
                 def consult():
                     return consult_text(backend.ask, lines)
-            routed = cascade(lines, EXTRACTORS["rules"]["total"](lines), found["date"], ranked, consult)
+            reading = None
+            if args.guard:
+                second = run_ocr(PIPELINES[SECOND_READING](img), OcrConfig(lang=args.lang, psm=args.psm))
+                reading = amounts_read(second.text)
+            routed = cascade(lines, EXTRACTORS["rules"]["total"](lines), found["date"], ranked, consult,
+                             second_reading=reading)
             found["total"], found["date"] = routed.total, routed.date
             print(f"[route: {routed.route}]", file=sys.stderr)
     if args.json:
@@ -204,9 +218,15 @@ def _cmd_eval_llm(args: argparse.Namespace) -> int:
         print(f"  asking {backend.name} about receipt {receipt_id} ({asked})", file=sys.stderr)
         return cached.ask(receipt_id, prompt, image, schema)
 
+    second = None
+    if args.guard:
+        second = ocr_receipts(receipts, SECOND_READING, OcrConfig(lang=args.lang, psm=args.psm),
+                              Path(args.cache), args.workers)
     rows = evaluate_llm.evaluate([(r, ocr[r.id]) for r in receipts], ranker, ask, args.mode, args.threshold,
-                                 args.input)
+                                 args.input, second)
     tag = f"{args.split}_{args.mode}_{args.input}_{backend.name}_{backend.label}"
+    if args.guard:
+        tag += "_guard"
     tag = tag.replace(":", "-").replace("/", "-")
     out = Path(args.out)
     evaluate_llm.write_csv(rows, out / f"llm_eval_{tag}.csv")
@@ -219,6 +239,9 @@ def _cmd_eval_llm(args: argparse.Namespace) -> int:
         f"routing threshold {args.threshold}. Requests sent in this run: {cached.calls} (the rest came from "
         f"the cache in `{args.llm_cache}`)."
     )
+    if args.guard:
+        header += (f" Guard on: a trusted total must also be read by a second OCR pass (`{SECOND_READING}`, "
+                   f"page mode {args.psm}), and the cash check does not confirm its own fallback.")
     tokens_in = sum(r.input_tokens or 0 for r in rows)
     tokens_out = sum(r.output_tokens or 0 for r in rows)
     total = cost_usd(backend.model, tokens_in, tokens_out)
@@ -266,6 +289,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_ext.add_argument("--llm-model", help="model name for --llm, e.g. claude-haiku-5-5 or qwen2.5:3b")
     p_ext.add_argument("--llm-input", choices=["text", "image"], default="text",
                        help="the LLM reads the OCR text or the scan itself")
+    p_ext.add_argument("--guard", action="store_true",
+                       help="with --llm: distrust a cheap total that a second OCR pass does not read too")
     p_ext.set_defaults(func=_cmd_extract)
 
     p_eext = sub.add_parser("eval-extract", help="score the total and date extractors on SROIE")
@@ -303,6 +328,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_llm.add_argument("--split", choices=SPLITS, default="test")
     p_llm.add_argument("--limit", type=int, help="only the first N receipts, for a quick try")
     p_llm.add_argument("--threshold", type=float, default=evaluate_learned.ROUTE_THRESHOLD)
+    p_llm.add_argument("--guard", action="store_true",
+                       help="distrust a cheap total that a second OCR pass does not read too")
     p_llm.add_argument("--max-usd", type=float, default=1.0,
                        help="stop sending requests once this run has spent about this much (API models only)")
     p_llm.add_argument("--ranker", default="models/total_ranker.json")

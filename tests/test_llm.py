@@ -20,6 +20,7 @@ from folio.llm import (
     AnthropicBackend,
     CachedBackend,
     OllamaBackend,
+    amounts_read,
     build_prompt,
     cascade,
     check_answer,
@@ -122,6 +123,48 @@ def test_cascade_asks_when_unsure_and_keeps_only_grounded_answers():
     assert invented.date.value == dt.date(2026, 10, 19) and invented.date.rule == "llm (grounded)"
 
 
+def test_amounts_read_collects_every_amount_as_a_value():
+    assert amounts_read("TOTAL RM 12.25\nCASH 20,00\nTHANK YOU") == {Decimal("12.25"), Decimal("20.00")}
+
+
+def test_guard_sends_back_a_total_the_second_reading_did_not_see():
+    date = Extraction(dt.date(2026, 10, 19), 1, LINES[1], "date after a label")
+    asked = []
+
+    def consult():
+        asked.append(1)
+        return consult_text(FakeBackend(answer()).ask, LINES)
+
+    # The ranker is sure of 12.25, but a second OCR pass read 72.25 on that line: ask the model.
+    got = cascade(LINES, rules("12.27", False), date, ranked("12.25", 0.99), consult,
+                  second_reading={Decimal("72.25"), Decimal("20.00")})
+    assert (got.route, got.total.value, got.total.rule, len(asked)) == (
+        "second reading disagrees", Decimal("12.25"), "llm (grounded)", 1)
+    # Both passes read the same value: trusted as before, without a call.
+    got = cascade(LINES, rules("12.27", False), date, ranked("12.25", 0.99), consult,
+                  second_reading={Decimal("12.25")})
+    assert (got.route, len(asked)) == ("confident ranker", 1)
+
+
+def test_guard_stops_the_cash_check_confirming_its_own_fallback():
+    date = Extraction(dt.date(2026, 10, 19), 1, LINES[1], "date after a label")
+    never = FakeBackend(answer())
+
+    def no_call():
+        return consult_text(never.ask, LINES)
+
+    fallback = Extraction(Decimal("12.25"), 5, LINES[5], "cash minus change", True)
+    # Without the guard, as in stage 3, the fallback counts as confirmed by cash.
+    assert cascade(LINES, fallback, date, ranked("12.27", 0.4), no_call).route == "confirmed by cash"
+    got = cascade(LINES, fallback, date, ranked("12.27", 0.4),
+                  lambda: consult_text(FakeBackend(answer()).ask, LINES), second_reading={Decimal("12.25")})
+    assert (got.route, got.total.value) == ("llm", Decimal("12.25"))
+    # A total read from a total line and matched by cash minus change is still trusted.
+    got = cascade(LINES, rules("12.25", True), date, ranked("12.27", 0.4), no_call,
+                  second_reading={Decimal("12.25")})
+    assert (got.route, never.prompts) == ("confirmed by cash", [])
+
+
 def test_anthropic_backend_sends_the_schema_through_the_real_sdk():
     anthropic = pytest.importorskip("anthropic")
     try:  # recent SDKs are built on httpx2, older ones on httpx
@@ -197,6 +240,12 @@ def test_evaluation_reports_routes_and_the_model_alone():
     assert all_rows[0].route == "llm for the date" and all_rows[0].asked  # no date on this receipt
     md = render_markdown(all_rows, "header")
     assert "| LLM alone (grounded answers only) | 1 of 1" in md and "## Cost" in md
+    assert "second reading disagrees" not in md  # the guard was off
+
+    misread = OcrResult([b for row in receipt_rows([("TOTAL", "9.96")]) for b in row])
+    guarded = evaluate([(receipt, ocr)], ranker, ask, mode="cascade", threshold=0.0, second={"r1": misread})
+    assert guarded[0].route == "second reading disagrees" and guarded[0].asked and guarded[0].final_total_ok
+    assert "| second reading disagrees | 1 |" in render_markdown(guarded, "header")
 
 
 def test_list_price_cost_and_new_request_accounting(tmp_path):

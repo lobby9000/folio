@@ -28,7 +28,7 @@ import json
 import os
 import time
 import urllib.request
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
@@ -324,7 +324,7 @@ class Routed:
 
     total: Extraction | None
     date: Extraction | None
-    route: str  # "confirmed by cash", "confident ranker" or "llm"
+    route: str  # "confirmed by cash", "confident ranker", "llm" or "second reading disagrees"
     llm: dict[str, Checked] = field(default_factory=dict)
     answer: Answer | None = None
 
@@ -341,8 +341,18 @@ def consult_image(ask, image: bytes, lines: Sequence[str]):
     return answer, check_image_answer(answer.data, lines)
 
 
+# Preprocessing of the second OCR pass behind the guard: other binarisation, other misreads.
+SECOND_READING = "otsu"
+
+
+def amounts_read(text: str) -> frozenset[Decimal]:
+    """Every amount in a text, as values: what a second OCR pass read."""
+    return frozenset(a.value for line in text.splitlines() for a in find_amounts(line))
+
+
 def cascade(lines: Sequence[str], rules_total: Extraction | None, rules_date: Extraction | None,
-            ranked: Extraction | None, consult, threshold: float = 0.95) -> Routed:
+            ranked: Extraction | None, consult, threshold: float = 0.95,
+            second_reading: Collection[Decimal] | None = None) -> Routed:
     """Accept the cheap answer when it is trustworthy, ask the model otherwise.
 
     The total is trusted when the rules' total matches cash minus change, or when the
@@ -352,13 +362,22 @@ def cascade(lines: Sequence[str], rules_total: Extraction | None, rules_date: Ex
 
     When the model is consulted, its accepted total replaces the ranker's (only if the
     total was not trusted), and its accepted date replaces the rules' date.
+
+    `second_reading`, the amounts found by a second OCR pass with other preprocessing,
+    turns on the guard against misread digits added after stage 3: a trusted total must
+    also be in the second reading, and the cash check no longer counts for the rules'
+    cash-minus-change fallback, which it would only be confirming with itself.
     """
-    if rules_total is not None and rules_total.checked:
+    guard = second_reading is not None
+    if (rules_total is not None and rules_total.checked
+            and not (guard and rules_total.rule == "cash minus change")):
         trusted, route = rules_total, "confirmed by cash"
     elif ranked is not None and ranked.score is not None and ranked.score >= threshold:
         trusted, route = ranked, "confident ranker"
     else:
         trusted, route = None, "llm"
+    if guard and trusted is not None and trusted.value not in second_reading:
+        trusted, route = None, "second reading disagrees"
     if trusted is not None and rules_date is not None:
         return Routed(trusted, rules_date, route)
 

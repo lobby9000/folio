@@ -1,0 +1,201 @@
+receipt,gold_total,gold_date,route,rules_total_ok,ranker_total_ok,final_total,final_total_ok,final_date,final_date_ok,asked,llm_total,llm_total_status,llm_total_ok,llm_date_status,llm_date_ok,seconds,input_tokens,output_tokens
+000,9.00,25/12/2018,llm,False,False,9.00,True,2018-12-25,True,True,9.00,read from the image,True,read from the image,True,1.779,1226,75
+003,80.90,25/12/2018,llm,False,False,80.90,True,2018-12-25,True,True,80.90,read from the image,True,read from the image,True,1.323,1175,62
+005,31.00,09/01/2019,llm,False,False,31.00,True,2019-01-09,True,True,31.00,read from the image,True,read from the image,True,1.899,971,71
+007,20.00,23-01-2019,confirmed by cash,True,True,20.00,True,2019-01-23,True,True,20.00,read from the image,True,read from the image,True,1.566,1090,71
+008,112.45,12/02/2018,llm,False,False,112.46,False,2018-02-12,True,True,112.46,read from the image,False,read from the image,True,1.916,2433,54
+009,26.60,18/01/2018,llm,True,True,26.60,True,2018-01-18,True,True,26.60,read from the image,True,read from the image,True,1.25,1961,68
+012,15.90,22/12/2017,llm,True,True,15.90,True,2017-12-22,True,True,15.90,read from the image,True,read from the image,True,1.263,1974,60
+015,15.90,22/12/2017,llm,True,True,15.90,True,2017-12-22,True,True,15.90,read from the image,True,read from the image,True,1.861,1974,60
+016,73.00,20/12/2017,llm,False,True,73.00,True,2017-12-20,True,True,73.00,read from the image,True,read from the image,True,1.479,2667,58
+017,39.80,20/11/2017,second reading disagrees,True,True,39.80,True,2017-11-20,True,True,39.80,read from the image,True,read from the image,True,1.522,3117,58
+018,73.00,20/12/2017,llm,False,True,73.00,True,2017-12-20,True,True,73.00,read from the image,True,read from the image,True,1.447,2667,58
+019,86.00,18/03/18,confident ranker,True,True,86.00,True,2018-03-18,True,True,86.00,read from the image,True,read from the image,True,1.086,1125,55
+024,55.10,15/01/2018,llm,True,True,55.10,True,2018-01-15,True,True,55.10,read from the image,True,read from the image,True,1.805,5353,68
+030,$8.20,05 MAR 2018,confirmed by cash,True,True,8.20,True,2018-03-05,True,True,$8.20,read from the image,True,read from the image,True,1.998,2742,62
+031,75.00,06/03/2018,llm for the date,False,False,78.00,False,2018-03-06,True,True,75.00,read from the image,True,read from the image,True,1.23,2742,71
+038,13.10,11/03/2018,llm for the date,True,True,13.10,True,2018-03-11,True,True,13.10,read from the image,True,read from the image,True,1.342,2742,68
+040,343.95,12/03/2018,llm,False,False,343.95,True,2018-03-12,True,True,343.95,read from the image,True,read from the image,True,1.697,1540,58
+047,170.00,09/03/2018,llm,False,True,170.00,True,2018-03-09,True,True,RM 170.00,read from the image,True,read from the image,True,1.164,2742,59
+049,8.00,15/03/2018,llm,True,True,8.00,True,2018-03-15,True,True,8.00,read from the image,True,read from the image,True,1.315,2742,54
+051,$7.60,22 MAR 2018,llm,True,True,7.60,True,2018-03-22,True,True,$7.60,read from the image,True,read from the image,True,1.302,2742,62
+056,$8.70,21 MAR 2018,confirmed by cash,True,True,8.70,True,2018-03-21,True,True,$8.70,read from the image,True,read from the image,True,1.334,2742,62
+057,$7.10,29 MAR 2018,llm,True,True,7.10,True,2018-03-29,True,True,$7.10,read from the image,True,read from the image,True,1.617,2742,62
+060,77.20,12/03/18,confident ranker,True,True,77.20,True,2018-03-12,True,True,77.20,read from the image,True,read from the image,True,1.317,2453,60
+061,129.30,28 MAR 18,confident ranker,True,True,129.30,True,2018-03-28,True,True,129.30,read from the image,True,read from the image,True,1.302,3081,56
+068,3.20,20180304,confident ranker,True,True,3.20,True,2018-03-04,True,True,3.20,read from the image,True,read from the image,True,1.284,2773,59
+072,49.40,01/03/18,confirmed by cash,True,True,49.40,True,2018-03-01,True,True,49.40,read from the image,True,read from the image,True,1.677,3541,61
+074,102.00,20/03/2018,confident ranker,False,False,702.00,False,2018-03-20,True,True,102.00,read from the image,True,read from the image,True,1.356,1584,60
+094,5.90,09/02/2018,confirmed by cash,True,True,5.90,True,2018-02-09,True,True,5.90,read from the image,True,read from the image,True,1.016,2055,67
+098,42.40,04/12/17,llm,False,True,42.40,True,2017-12-04,True,True,42.40,read from the image,True,read from the image,True,1.266,2365,59
+100,7.42,02/12/2017,confident ranker,True,True,7.42,True,2017-12-02,True,True,7.42,read from the image,True,read from the image,True,2.206,2365,63
+102,73.30,23/12/17,llm,False,False,73.30,True,2017-12-23,True,True,73.30,read from the image,True,read from the image,True,2.781,2859,51
+104,102.40,30 DEC 17,llm,True,True,102.40,True,2017-12-30,True,True,102.40,read from the image,True,read from the image,True,1.406,2837,53
+105,30.30,14-02-2018,second reading disagrees,True,True,30.30,True,2018-02-14,True,True,30.30,read from the image,True,read from the image,True,2.494,2521,61
+107,48.15,21-03-2018,second reading disagrees,True,False,48.15,True,2018-03-21,True,True,48.15,read from the image,True,read from the image,True,1.409,3541,61
+109,7.00,09/02/2018,llm for the date,True,True,7.00,True,2018-02-09,True,True,7.00,read from the image,True,read from the image,True,1.273,2671,60
+112,RM4.00,14/01/2018,llm,True,True,4.00,True,2018-01-14,True,True,RM4.00,read from the image,True,read from the image,True,1.282,1785,64
+113,93.07,02/01/2018,confirmed by cash,True,True,93.07,True,2018-01-02,True,True,93.07,read from the image,True,read from the image,True,3.632,3147,63
+114,44.73,04/01/2018,confirmed by cash,True,True,44.73,True,2018-01-04,True,True,44.73,read from the image,True,read from the image,True,1.116,3249,63
+115,23.32,10/01/2018,confirmed by cash,True,True,23.32,True,2018-01-10,True,True,23.32,read from the image,True,read from the image,True,1.328,2875,63
+121,21.20,11/01/2018,confirmed by cash,True,True,21.20,True,2018-01-11,True,True,21.20,read from the image,True,read from the image,True,2.5,2875,63
+124,5.30,12/02/2018,llm,False,True,5.30,True,2018-02-12,True,True,5.30,read from the image,True,read from the image,True,1.373,2875,63
+130,63.60,05/02/2018,confirmed by cash,True,True,63.60,True,2018-02-06,False,True,63.60,read from the image,True,read from the image,True,1.471,2943,63
+132,79.35,02/03/18,second reading disagrees,True,True,79.35,True,2018-03-02,True,True,79.35,read from the image,True,read from the image,True,1.267,1862,69
+134,21.40,10/08/2017,llm,True,True,21.40,True,2017-08-10,True,True,21.40,read from the image,True,read from the image,True,1.731,3265,62
+137,9.10,19-03-2018,confident ranker,True,True,9.10,True,2018-03-19,True,True,9.10,read from the image,True,read from the image,True,1.735,2875,59
+138,4.80,14-03-2018,confident ranker,True,True,4.80,True,2018-03-14,True,True,4.80,read from the image,True,read from the image,True,1.332,2773,59
+139,6.70,21-03-2018,confident ranker,True,True,6.70,True,2018-03-21,True,True,6.70,read from the image,True,read from the image,True,1.258,2773,59
+140,9.60,16-03-2018,confident ranker,True,True,9.60,True,2018-03-16,True,True,9.60,read from the image,True,read from the image,True,1.613,2875,59
+141,7.00,12-03-2018,confident ranker,True,True,7.00,True,2018-03-12,True,True,7.00,read from the image,True,read from the image,True,1.41,2773,59
+148,13.10,18/03/2018,confirmed by cash,True,True,13.10,True,2018-03-18,True,True,13.10,read from the image,True,read from the image,True,2.213,1565,68
+152,RM41.45,25032018,llm,False,True,41.45,True,,False,True,RM41.45,read from the image,True,unreadable,False,1.239,1961,72
+156,RM 29.70,17/1/2018,confirmed by cash,True,True,29.70,True,2018-01-17,True,True,RM 29.70,read from the image,True,read from the image,True,1.472,2569,63
+162,213.00,17-02-18,confident ranker,True,True,213.00,True,2018-02-17,True,True,213.00,read from the image,True,read from the image,True,2.258,2453,66
+163,108.50,17-02-18,llm,False,True,108.50,True,2018-02-17,True,True,108.50,read from the image,True,read from the image,True,1.517,2453,66
+169,RM29.30,2018-03-18,llm,False,False,29.30,True,2018-03-18,True,True,RM29.30,read from the image,True,read from the image,True,1.36,2943,61
+171,12.00,04/03/18,confident ranker,True,True,12.00,True,2018-03-04,True,True,12.00,read from the image,True,read from the image,True,2.075,2997,57
+174,20.50,01/02/2018,second reading disagrees,True,True,20.50,True,2018-02-01,True,True,20.50,read from the image,True,read from the image,True,3.168,2875,63
+177,127.20,06/03/2018,confirmed by cash,True,True,127.20,True,2018-03-06,True,True,127.20,read from the image,True,read from the image,True,1.394,3181,63
+181,6.00,24-03-2018,llm,False,True,6.00,True,2018-03-24,True,True,6.00,read from the image,True,read from the image,True,1.278,2037,62
+183,21.20,03/02/2018,llm for the date,True,True,21.20,True,2018-03-03,False,True,21.20,read from the image,True,read from the image,False,1.031,1893,52
+189,63.35,02/03/2018,confident ranker,True,True,63.35,True,2018-03-02,True,True,63.35,read from the image,True,read from the image,True,1.094,1812,67
+199,8.00,10/10/2017,confident ranker,True,True,8.00,True,2017-10-10,True,True,8.00,read from the image,True,read from the image,True,1.241,1741,73
+200,42.90,17-03-18,confirmed by cash,True,True,42.90,True,2018-03-17,True,True,RM 42.90,read from the image,True,read from the image,True,1.415,1975,79
+206,21.00,24-MAR-2018,confirmed by cash,True,True,21.00,True,2018-03-24,True,True,21.00,read from the image,True,read from the image,True,1.301,1897,61
+207,14.90,24-03-18,confirmed by cash,True,True,14.90,True,2018-03-24,True,True,RM 14.90,read from the image,True,read from the image,True,1.794,1845,79
+212,29.00,17/01/2018,llm,False,True,29.00,True,2018-01-17,True,True,29.00,read from the image,True,read from the image,True,1.7,1758,65
+214,13.50,06/02/2018,confident ranker,True,True,13.50,True,2018-02-06,True,True,13.50,read from the image,True,read from the image,True,1.351,2178,75
+218,329.10,15/01/2018,confident ranker,True,True,329.10,True,2018-01-15,True,True,329.10,read from the image,True,read from the image,True,1.312,2469,55
+219,100.00,12/01/2018,llm,False,True,100.00,True,2018-01-12,True,True,100.00,read from the image,True,read from the image,True,1.229,2037,62
+222,41.00,27/02/18,confirmed by cash,True,True,41.00,True,2018-02-27,True,True,41.00,read from the image,True,read from the image,True,1.54,2703,61
+225,56.00,30/03/2018,llm,True,True,56.00,True,2018-03-30,True,True,56.00 DH,read from the image,True,read from the image,True,1.692,1353,79
+230,8.50,27/03/2018,llm,False,False,8.50,True,2018-03-27,True,True,8.50,read from the image,True,read from the image,True,1.508,2714,58
+231,119.70,15-03-18,llm,True,False,119.70,True,2018-03-15,True,True,RM 119.70,read from the image,True,read from the image,True,1.565,2860,76
+236,14.85,20/03/2017,second reading disagrees,False,False,14.85,True,2017-03-20,True,True,14.85,read from the image,True,read from the image,True,1.274,2001,66
+242,12.60,05 JAN 2017,llm,True,True,12.60,True,2017-01-05,True,True,12.60,read from the image,True,read from the image,True,1.393,2597,69
+243,20.05,04 JAN 2017,llm,True,True,20.05,True,2017-01-04,True,True,20.05,read from the image,True,read from the image,True,1.489,2097,74
+250,104.00,09/04/2018,llm for the date,False,False,404.00,False,2018-04-09,True,True,104.00,read from the image,True,read from the image,True,2.127,2053,64
+251,15.40,10/04/2017,confirmed by cash,True,True,15.40,True,2017-04-10,True,True,15.40,read from the image,True,read from the image,True,1.123,2028,63
+252,12.37,23/04/2017,llm,False,False,12.37,True,2017-04-23,True,True,12.37,read from the image,True,read from the image,True,1.052,2365,63
+253,113.80,23-04-2017,confident ranker,True,True,113.80,True,2017-04-23,True,True,113.80,read from the image,True,read from the image,True,1.149,3000,59
+255,94.00,25/04/2017,llm,False,False,94.00,True,2017-04-25,True,True,94.00,read from the image,True,read from the image,True,1.477,1793,67
+258,RM1.00,30/04/2017,llm,False,True,1.00,True,2017-04-30,True,True,RM1.00,read from the image,True,read from the image,True,1.614,1338,64
+264,118.35,25 MAY 2017,second reading disagrees,False,False,119.35,False,2017-05-25,True,True,119.35,read from the image,False,read from the image,True,1.592,2417,69
+270,250.00,10 OCT 2017,confident ranker,True,True,250.00,True,2017-10-10,True,True,250.00,read from the image,True,read from the image,True,1.429,3081,74
+273,165.00,14/JUN/2017,llm,True,True,165.00,True,2017-06-14,True,True,165.00,read from the image,True,read from the image,True,2.647,1920,79
+276,72.75,10-05-17,second reading disagrees,True,True,72.75,True,2017-05-10,True,True,72.75,read from the image,True,read from the image,True,1.438,1829,56
+277,72.00,05-JAN-2017,confirmed by cash,True,True,72.00,True,2017-01-05,True,True,72.00,read from the image,True,read from the image,True,1.826,2244,65
+284,$7.10,03 APR 2018,confirmed by cash,True,True,7.10,True,2018-04-03,True,True,$7.10,read from the image,True,read from the image,True,1.792,5353,58
+290,12.30,14/04/2018,llm,True,True,12.30,True,2018-04-14,True,True,12.30,read from the image,True,read from the image,True,2.383,5353,56
+291,$7.00,18 APR 2018,confirmed by cash,True,True,7.00,True,2018-04-18,True,True,$7.00,read from the image,True,read from the image,True,1.729,5353,62
+293,270.00,6/4/2018,llm,False,False,270.00,True,2018-04-06,True,True,270.00,read from the image,True,read from the image,True,1.775,5353,59
+296,25.60,17/04/18,llm,False,False,3.90,False,2018-04-17,True,True,3.90,read from the image,False,read from the image,True,1.498,5353,63
+301,10.20,22/04/2018,confirmed by cash,True,True,10.20,True,2018-04-22,True,True,10.20,read from the image,True,read from the image,True,2.293,5353,59
+303,30.90,28/04/18,llm,False,False,30.90,True,2018-04-28,True,True,30.90,read from the image,True,read from the image,True,1.751,5353,62
+304,39.60,28/04/18,confident ranker,True,True,39.60,True,2018-04-28,True,True,39.60,read from the image,True,read from the image,True,1.707,5353,50
+305,81.80,17/04/2018,llm,False,False,81.80,True,2018-04-17,True,True,81.80,read from the image,True,read from the image,True,1.696,5353,68
+306,18.90,08/04/2018,llm,True,True,18.90,True,2018-04-08,True,True,18.90,read from the image,True,read from the image,True,1.563,5353,63
+307,46.55,20/04/2018,llm,False,False,46.55,True,2018-04-20,True,True,46.55,read from the image,True,read from the image,True,1.816,5353,67
+309,6.40,20/04/2018,confirmed by cash,True,True,6.40,True,2018-04-20,True,True,6.40,read from the image,True,read from the image,True,1.812,5376,71
+311,122.80,01/04/2018,llm,False,True,122.80,True,2018-04-01,True,True,122.80,read from the image,True,read from the image,True,1.724,5353,67
+312,38.37,19/05/18,llm,True,True,38.37,True,2018-05-19,True,True,38.37,read from the image,True,read from the image,True,1.325,1777,58
+313,52.80,19/05/18,confident ranker,True,True,52.80,True,2018-05-19,True,True,52.80,read from the image,True,read from the image,True,1.236,1402,63
+315,11.25,18/04/2018,llm,False,False,11.25,True,2018-04-18,True,True,11.25,read from the image,True,read from the image,True,1.266,1710,63
+316,1.38,30-04-2018,llm,False,False,1.38,True,2018-04-30,True,True,RM1.38,read from the image,True,read from the image,True,0.921,1125,58
+321,3.70,20/04/2018,confirmed by cash,True,True,3.70,True,2018-04-20,True,True,3.70,read from the image,True,read from the image,True,0.949,1093,58
+329,53.14,30/08/2017,llm,True,True,53.14,True,2017-08-30,True,True,53.14,read from the image,True,read from the image,True,1.245,1521,57
+330,20.21,30/07/2017,llm,True,True,20.21,True,2017-07-30,True,True,20.21,read from the image,True,read from the image,True,1.855,1586,57
+331,94.19,27/07/2017,llm,True,True,94.19,True,2017-07-27,True,True,94.19,read from the image,True,read from the image,True,1.277,1587,57
+336,39.78,24/08/2017,llm,True,True,39.78,True,2017-08-24,True,True,39.78,read from the image,True,read from the image,True,1.695,1543,53
+337,73.55,21/08/2017,llm,True,True,73.55,True,2017-08-21,True,True,73.55,read from the image,True,read from the image,True,1.22,1631,53
+339,7.97,17/08/2017,llm,True,True,7.97,True,2017-08-17,True,True,7.97,read from the image,True,read from the image,True,1.707,1609,57
+342,19.31,05/08/2017,llm,False,False,19.31,True,2017-08-05,True,True,19.31,read from the image,True,read from the image,True,1.674,1543,57
+343,51.88,03/08/2017,llm,False,False,51.88,True,2017-08-03,True,True,51.88,read from the image,True,read from the image,True,1.069,1587,58
+346,26.80,30/09/2017,confident ranker,True,True,26.80,True,2017-09-30,True,True,26.80,read from the image,True,read from the image,True,1.178,1521,57
+350,"1,007.50",23/09/2017,confirmed by cash,True,True,1007.50,True,2017-09-23,True,True,"1,007.50",read from the image,True,read from the image,True,1.189,1587,67
+354,40.18,17/09/2017,llm,True,True,40.18,True,2017-09-17,True,True,40.18,read from the image,True,read from the image,True,1.297,1678,57
+355,3.21,16/09/2017,llm,True,False,3.21,True,2017-09-16,True,True,3.21,read from the image,True,read from the image,True,1.364,1543,53
+358,62.60,30/10/2017,confident ranker,True,True,62.60,True,2017-10-30,True,True,62.60,read from the image,True,read from the image,True,1.462,1632,57
+359,14.79,20/10/2017,llm,True,True,14.79,True,2017-10-20,True,True,14.79,read from the image,True,read from the image,True,1.573,1521,57
+360,41.87,24/10/2017,llm,True,True,41.87,True,2017-10-24,True,True,41.87,read from the image,True,read from the image,True,1.445,1543,53
+361,31.05,18/10/2017,second reading disagrees,True,True,31.05,True,2017-10-18,True,True,31.05,read from the image,True,read from the image,True,1.702,1565,57
+363,58.86,29/10/2017,llm,True,True,58.86,True,2017-10-29,True,True,58.86,read from the image,True,read from the image,True,1.652,1521,53
+369,33.80,14/10/2017,confident ranker,True,True,33.80,True,2017-10-14,True,True,33.80,read from the image,True,read from the image,True,1.415,1632,53
+373,46.06,08/10/2017,llm,True,True,46.06,True,2017-10-08,True,True,46.06,read from the image,True,read from the image,True,0.936,1521,53
+375,31.32,01/10/2017,llm,True,True,31.32,True,2017-10-01,True,True,31.32,read from the image,True,read from the image,True,1.622,1586,57
+376,54.19,26/10/2017,llm,True,True,54.19,True,2017-10-26,True,True,54.19,read from the image,True,read from the image,True,1.52,1565,57
+381,RM111.90,(06/12/2016),llm,False,True,11.90,False,2016-12-06,True,True,RM11.90,read from the image,False,read from the image,True,1.252,2989,75
+384,31.80,21-11-16,llm,True,True,31.80,True,2016-11-21,True,True,31.80,read from the image,True,read from the image,True,1.603,2549,66
+387,82.80,03-02-16,llm,False,False,82.80,True,2016-02-03,True,True,82.80,read from the image,True,read from the image,True,1.117,2517,66
+390,RM 57.40,24-01-16,llm,True,True,57.40,True,2016-01-24,True,True,RM 57.40,read from the image,True,read from the image,True,1.668,3265,79
+393,28.20,24/07/2016,confirmed by cash,True,True,28.20,True,2016-07-24,True,True,28.20,read from the image,True,read from the image,True,1.246,2808,68
+395,RM8.35,2016-07-31,llm,False,False,8.35,True,2016-07-31,True,True,RM8.35,read from the image,True,read from the image,True,1.402,2637,61
+401,RM 12.50,22-04-16,confirmed by cash,True,True,12.50,True,2016-04-22,True,True,RM 12.50,read from the image,True,read from the image,True,1.8,2677,79
+403,RM 68.10,22-04-16,confirmed by cash,True,True,68.10,True,2016-04-22,True,True,RM 68.10,read from the image,True,read from the image,True,1.663,3541,82
+404,6.85,19/05/16,llm,False,False,6.85,True,2016-05-19,True,True,6.85,read from the image,True,read from the image,True,1.285,2365,64
+407,89.00,01/05/16,llm,False,False,89.00,True,2016-05-01,True,True,89.00,read from the image,True,read from the image,True,1.25,2869,64
+410,RM31.60,21/05/2018,llm for the date,True,True,31.60,True,2018-05-21,True,True,RM31.60,read from the image,True,read from the image,True,1.299,1931,67
+411,39.90,24-05-2018,confirmed by cash,True,True,39.90,True,2018-05-24,True,True,39.90,read from the image,True,read from the image,True,1.228,1675,56
+417,148.00,15/07/2017,confident ranker,True,True,148.00,True,2017-07-15,True,True,148.00,read from the image,True,read from the image,True,1.278,2901,64
+422,16.30,26/02/2018,confirmed by cash,True,True,16.30,True,2018-02-26,True,True,16.30,read from the image,True,read from the image,True,0.999,1461,53
+423,30.70,17/05/2018,confident ranker,True,True,30.70,True,2018-06-17,False,True,RM 30.70,read from the image,True,read from the image,True,1.716,5376,67
+425,$8.70,30 MAY 2018,confident ranker,True,True,8.70,True,2018-05-30,True,True,$8.70,read from the image,True,read from the image,True,1.681,5353,54
+426,99.90,27/05/2018,confident ranker,True,True,99.90,True,2018-05-21,False,True,94.51,read from the image,False,read from the image,True,1.601,5353,62
+432,$6.60,09 MAY 2018,confirmed by cash,True,True,6.60,True,2018-05-09,True,True,$6.60,read from the image,True,read from the image,True,1.99,5353,54
+437,11.10,25/05/2018,llm,False,False,11.10,True,2018-05-25,True,True,11.10,read from the image,True,read from the image,True,1.473,5353,68
+438,$8.40,24 MAY 2018,confident ranker,True,True,8.40,True,2018-05-24,True,True,$8.40,read from the image,True,read from the image,True,1.518,5353,54
+439,$10.70,27 MAY 2018,confident ranker,True,True,10.70,True,2018-05-27,True,True,$10.70,read from the image,True,read from the image,True,1.673,5353,58
+441,RM 31.20,06-04-18,confident ranker,True,True,31.20,True,2018-04-06,True,True,RM 31.20,read from the image,True,read from the image,True,1.191,2244,79
+443,RM 15.40,19-04-18,confident ranker,True,True,15.40,True,2018-04-19,True,True,RM 15.40,read from the image,True,read from the image,True,1.341,2001,79
+446,48.10,25-04-18,confirmed by cash,True,True,48.10,True,2018-04-25,True,True,RM 48.10,read from the image,True,read from the image,True,1.129,1974,80
+449,26.10,28/04/2018,llm for the date,True,True,26.10,True,2018-04-28,True,True,26.10,read from the image,True,read from the image,True,1.612,2427,67
+456,51.00,09/04/2018,confident ranker,True,True,51.00,True,2018-04-09,True,True,51.00,read from the image,True,read from the image,True,1.231,1770,67
+460,9.45,11/05/2018,llm,True,True,9.45,True,2018-05-11,True,True,9.45,read from the image,True,read from the image,True,1.45,5353,62
+462,164.80,26/05/2018,confident ranker,True,True,164.80,True,2018-05-26,True,True,RM 164.80,read from the image,True,read from the image,True,1.604,5353,67
+464,15.15,06/05/2018,confirmed by cash,True,True,15.15,True,2018-05-06,True,True,15.15,read from the image,True,read from the image,True,1.56,5353,54
+466,70.30,21/05/2018,confident ranker,True,True,70.30,True,2018-05-21,True,True,70.30,read from the image,True,read from the image,True,1.392,1873,74
+467,25.00,20/05/2018,confirmed by cash,True,True,25.00,True,2018-06-20,False,True,25.00,read from the image,True,read from the image,True,1.698,1609,74
+468,41.20,23/03/2018,confirmed by cash,True,True,41.20,True,2018-03-23,True,True,41.20,read from the image,True,read from the image,True,1.372,1433,51
+469,35.00,22/05/2017,confirmed by cash,True,True,35.00,True,2017-05-22,True,True,35.00,read from the image,True,read from the image,True,1.259,1816,66
+470,14.90,05/09/2017,confirmed by cash,True,True,14.90,True,2017-09-05,True,True,14.90,read from the image,True,read from the image,True,2.583,1862,66
+471,8.70,10/04/2017,second reading disagrees,True,True,8.70,True,2017-04-10,True,True,8.70,read from the image,True,read from the image,True,1.687,1816,66
+472,8.70,18/04/2017,llm for the date,True,True,8.70,True,2017-04-18,True,True,8.70,read from the image,True,read from the image,True,1.362,1816,66
+481,3.90,31/10/2017,confirmed by cash,True,True,3.90,True,2017-10-31,True,True,3.90,read from the image,True,read from the image,True,1.125,1816,66
+484,9.30,18/11/2017,second reading disagrees,True,True,9.30,True,2017-11-18,True,True,9.30,read from the image,True,read from the image,True,1.685,1885,66
+491,46.90,28/12/2017,confirmed by cash,True,True,46.90,True,2017-12-28,True,True,46.90,read from the image,True,read from the image,True,0.961,2023,51
+502,33.60,29/11/2017,confirmed by cash,True,True,33.60,True,2017-11-29,True,True,33.60,read from the image,True,read from the image,True,1.081,1931,51
+508,16.00,15/11/2017,llm,False,True,16.00,True,2017-11-15,True,True,16.00,read from the image,True,read from the image,True,3.622,2005,68
+509,30.00,12/09/2017,confident ranker,True,True,30.00,True,2017-09-12,True,True,30.00,read from the image,True,read from the image,True,1.592,2027,68
+513,16.00,10/05/2017,llm,True,True,16.00,True,2017-05-10,True,True,16.00,read from the image,True,read from the image,True,1.002,2005,68
+517,6.00,28/06/2018,confirmed by cash,True,True,6.00,True,2018-06-28,True,True,6.00,read from the image,True,read from the image,True,1.091,1389,61
+522,RM7.70,09 JUN 2018,confirmed by cash,True,True,7.70,True,2018-06-09,True,True,RM7.70,read from the image,True,read from the image,True,1.679,5353,60
+525,127.35,10/06/2018,confirmed by cash,True,True,127.35,True,2018-06-10,True,True,127.35,read from the image,True,read from the image,True,2.034,5353,67
+526,RM7.70,12 JUN 2018,confident ranker,True,True,7.70,True,2018-06-12,True,True,RM7.70,read from the image,True,read from the image,True,1.623,5353,60
+527,RM6.00,11 JUN 2018,confirmed by cash,True,True,6.00,True,2018-06-11,True,True,RM6.00,read from the image,True,read from the image,True,1.542,5353,60
+536,RM8.20,18 JUN 2018,confirmed by cash,True,True,8.20,True,2018-06-18,True,True,RM8.20,read from the image,True,read from the image,True,1.491,5353,60
+544,11.60,03/04/2018,llm,False,False,11.60,True,2018-04-03,True,True,11.60,read from the image,True,read from the image,True,1.359,2018,51
+547,4.80,26-05-2018,confident ranker,True,True,4.80,True,2018-05-26,True,True,4.80,read from the image,True,read from the image,True,1.252,2105,61
+548,19.40,05-05-2018,confident ranker,True,True,19.40,True,2015-06-05,False,True,19.40,read from the image,True,read from the image,True,1.171,2163,59
+562,15.00,11-06-2018,llm,False,True,15.00,True,2018-06-11,True,True,15.00,read from the image,True,read from the image,True,1.011,3181,59
+563,50.00,20/06/18,confident ranker,True,True,50.00,True,2018-06-20,True,True,50.00,read from the image,True,read from the image,True,1.746,2705,74
+566,6.70,04-06-2018,confident ranker,True,True,6.70,True,2000-06-04,False,True,6.70,read from the image,True,read from the image,True,1.336,2841,61
+569,7.80,11-06-2018,confident ranker,True,True,7.80,True,2018-06-11,True,True,7.80,read from the image,True,read from the image,True,1.376,3011,60
+570,9.60,20-06-2018,confident ranker,True,True,9.60,True,2018-06-20,True,True,9.60,read from the image,True,read from the image,True,1.514,2841,61
+575,137.15,05-05-18,llm,False,False,137.15,True,2018-05-05,True,True,137.15,read from the image,True,read from the image,True,1.721,1947,66
+576,22.90,13-05-18,confirmed by cash,True,True,22.90,True,2018-05-13,True,True,22.90,read from the image,True,read from the image,True,1.372,2028,56
+578,20.90,04-06-18,llm,True,True,20.90,True,2018-06-04,True,True,20.90,read from the image,True,read from the image,True,1.065,2613,57
+579,11.25,11-06-18,confirmed by cash,True,True,11.25,True,2018-06-11,True,True,RM 11.25,read from the image,True,read from the image,True,1.33,2739,76
+582,19.00,04-05-18,confirmed by cash,True,True,19.00,True,2018-05-04,True,True,19.00,read from the image,True,read from the image,True,1.892,2001,77
+584,5.00,28/05/18,llm,False,False,10.00,False,2018-05-28,True,True,10.00 RM,read from the image,False,read from the image,True,1.786,1490,56
+589,7.70,29/06/2018,second reading disagrees,True,True,7.70,True,2018-06-29,True,True,7.70,read from the image,True,read from the image,True,1.17,1540,61
+595,65.70,28-04-2018,confident ranker,True,True,65.70,True,2018-04-28,True,True,65.70,read from the image,True,read from the image,True,1.315,2482,59
+596,52.00,05-06-2018,confident ranker,True,True,52.00,True,2018-06-05,True,True,52.00,read from the image,True,read from the image,True,4.144,3045,59
+603,190.80,17/04/2018,llm for the date,True,True,190.80,True,2018-04-17,True,True,190.80,read from the image,True,read from the image,True,1.251,3283,63
+605,178.08,03/05/2018,llm for the date,True,True,178.08,True,2018-05-03,True,True,178.08,read from the image,True,read from the image,True,1.578,3317,63
+609,68.90,11/05/2018,llm for the date,True,True,68.90,True,2018-05-11,True,True,68.90,read from the image,True,read from the image,True,1.479,3181,63
+610,85.20,20/06/2018,second reading disagrees,False,False,85.20,True,2018-06-20,True,True,85.20,read from the image,True,read from the image,True,1.509,1631,61
+613,7.30,03/04/18,confirmed by cash,True,True,7.30,True,2018-04-03,True,True,7.30,read from the image,True,read from the image,True,3.934,3351,68
+618,35.00,13-06-2018,confident ranker,True,True,35.00,True,2018-06-13,True,True,35.00,read from the image,True,read from the image,True,1.262,2308,59
+620,58.00,17-06-2018,confident ranker,True,True,58.00,True,2018-06-07,False,True,58.00,read from the image,True,read from the image,True,1.367,2453,61
+624,102.00,20/03/2018,confident ranker,False,False,702.00,False,2018-03-20,True,True,102.00,read from the image,True,read from the image,True,1.274,1584,60

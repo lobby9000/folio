@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import csv
 import statistics
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 
@@ -21,7 +21,7 @@ from .evaluate import exact_mcnemar
 from .evaluate_extract import parse_label_date
 from .extract import extract_date, extract_total
 from .learn import TotalRanker
-from .llm import Answer, Routed, cascade, consult_image, consult_text
+from .llm import Answer, Routed, amounts_read, cascade, consult_image, consult_text
 from .metrics import wilson_interval
 from .normalize import parse_amount
 from .ocr import OcrResult
@@ -58,9 +58,11 @@ def evaluate(
     mode: str = "cascade",
     threshold: float = 0.95,
     source: str = "text",
+    second: Mapping[str, OcrResult] | None = None,
 ) -> list[LlmRow]:
     """`ask(receipt_id, prompt, image=None, schema=None)` returns the model's answer, cached or
-    not. `source` is "text" (the model reads the OCR rows) or "image" (it reads the scan)."""
+    not. `source` is "text" (the model reads the OCR rows) or "image" (it reads the scan).
+    `second`, a second OCR pass per receipt, turns on the cascade's guard against misread digits."""
     rows = []
     for receipt, ocr in receipts:
         if not receipt.fields["total"]:
@@ -80,8 +82,10 @@ def evaluate(
             return consult_text(ask_this, lines)
 
         first = consult() if mode == "all" else None
+        reading = None if second is None else amounts_read(second[receipt.id].text)
         routed: Routed = cascade(lines, rules_total, rules_date, ranked,
-                                 (lambda first=first: first) if first is not None else consult, threshold)
+                                 (lambda first=first: first) if first is not None else consult, threshold,
+                                 reading)
         answer, checked = first if first is not None else (routed.answer, routed.llm)
         t, d = checked.get("total"), checked.get("date")
         rows.append(LlmRow(
@@ -146,8 +150,11 @@ def render_markdown(rows: Sequence[LlmRow], header: str = "", source: str = "tex
               f"on {only_r} (exact McNemar p = {exact_mcnemar(only_c, only_r):.2g}).", ""]
 
     lines += ["## Where each receipt went", "", "| Route | Receipts | Total correct |", "|---|---|---|"]
-    for route in ("confirmed by cash", "confident ranker", "llm", "llm for the date"):
+    routes = ("confirmed by cash", "confident ranker", "second reading disagrees", "llm", "llm for the date")
+    for route in routes:
         group = [r for r in rows if r.route == route]
+        if not group and route == "second reading disagrees":
+            continue  # the guard was off
         right = sum(r.final_total_ok for r in group)
         lines.append(f"| {route} | {len(group)} | {_rate(right, len(group))} |")
     if routed:

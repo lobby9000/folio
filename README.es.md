@@ -45,9 +45,14 @@ Costos a precio de lista: USD 0.10 por millón de tokens de entrada y USD 0.50 p
 * **La cascada hace 89 llamadas para 200 recibos.** Se queda con el total de las reglas cuando coincide con efectivo menos cambio (71 recibos) y con el del ranker cuando su puntaje es al menos 0.95 (53 recibos), un umbral elegido con los recibos de entrenamiento. A Haiku le pregunta por los otros 76, y por 13 de los confiables porque las reglas no encontraron fecha. Encuentra el 94% de los totales: acierta en 25 recibos donde el ranker falla y falla en 1 donde el ranker acierta (McNemar exacta, p = 8e-07).
 * **Preguntar por todos los recibos sigue siendo más preciso.** El modelo solo acierta en 8 recibos donde la cascada falla, contra 1 al revés (p = 0.04), por USD 0.30 en lugar de 0.13 por cada 1,000 recibos. También lee bien 8 fechas que la cascada toma de las reglas y tiene mal. Con estos precios la cascada conviene cuando el límite es el número de llamadas, por ejemplo con un límite de solicitudes de la API o cuando conviene que salgan menos recibos de la máquina.
 * **Las rutas confiables fallan en dígitos, no en renglones.** En esos 8 recibos el OCR leyó mal o perdió un dígito en los renglones en que se apoyó la cascada (102.00 leído como 702.00, 104.00 como 404.00, un pago en efectivo de 94.00 como 4.00). El puntaje del ranker dice qué tan seguro está del renglón, y un dígito equivocado en el renglón correcto se ve igual de seguro.
-* **La verificación con el efectivo tiene un punto ciego.** Cuando las reglas no encuentran un renglón de total, uno de sus respaldos es efectivo menos cambio, y esa respuesta luego cuenta como confirmada por los mismos dos renglones. En prueba, un total leído de un renglón de total que coincidía con efectivo menos cambio acertó 62 de 62 veces, y el respaldo 7 de 9. Los recibos de entrenamiento muestran la misma diferencia (100 de 103 contra 13 de 16), así que la siguiente versión debe confiar en la verificación solo cuando el total salió de un renglón de total. Esto se encontró revisando los fallos de prueba, así que medir el arreglo necesitará recibos que el proyecto no haya visto.
+* **La verificación con el efectivo tiene un punto ciego.** Cuando las reglas no encuentran un renglón de total, uno de sus respaldos es efectivo menos cambio, y esa respuesta luego cuenta como confirmada por los mismos dos renglones. En prueba, un total leído de un renglón de total que coincidía con efectivo menos cambio acertó 62 de 62 veces, y el respaldo 7 de 9. Los recibos de entrenamiento muestran la misma diferencia (100 de 103 contra 13 de 16), así que la protección de abajo solo confía en la verificación cuando el total salió de un renglón de total.
 * **Dónde falla el modelo que lee el escaneo.** Leyó mal un dígito en 3 de los 200 recibos (en uno por un solo centavo) y tomó el renglón equivocado en 2: un monto antes de impuestos de la tabla de impuestos, y un "accepted total" que en realidad era el efectivo entregado. En el sexto leyó el gran total impreso, 3.90, donde la etiqueta registra el subtotal de 25.60 antes de un descuento. De sus 2 fechas falladas, 1 es culpa de la verificación: el modelo leyó bien 25032018 y la verificación no reconoce fechas impresas sin separadores.
 * **Costo y velocidad.** Un escaneo cuesta unos 2,700 tokens de entrada y la respuesta mediana tardó 1.4 s, con el razonamiento (thinking) apagado, porque Haiku 5.5 razona por defecto. Todas las corridas de esta etapa, incluidos los recibos de desarrollo, costaron unos USD 0.13. Las respuestas se guardan en disco con un hash del prompt y de la imagen, así que regenerar un reporte no manda solicitudes, y `--max-usd` detiene una corrida antes de que gaste más de un monto fijado.
+
+**Después de la etapa 3: una protección contra dígitos mal leídos**
+
+* **Los recibos de diseño fallan igual.** En los recibos de desarrollo y entrenamiento, con puntajes del ranker fuera de partición, la cascada confía en 270 totales y falla 11, todos por dígitos mal leídos. La confianza del OCR por palabra los separa mal: para atrapar 8 de los 11 habría que regresarle al LLM 75 respuestas correctas. Otras dos señales funcionan mejor juntas: una segunda pasada de OCR con binarización de Otsu que no lee el mismo valor, y una verificación con el efectivo que solo confirma su propio respaldo. Juntas atrapan 7 de los 11 y regresan 32 respuestas correctas: 39 llamadas más para 425 recibos. Reporte: [`results/guard_design.md`](results/guard_design.md).
+* **Con la protección, la cascada encuentra el 96% de los totales.** En prueba acierta 191 de 200 con 103 llamadas, contra 187 con 89 llamadas sin la protección y 194 preguntando por cada recibo ([reporte](results/llm_eval_test_all_image_anthropic_claude-haiku-5-5_guard.md)). Esta cifra es post hoc: la protección se diseñó después de revisar los fallos de prueba, así que la prueba ya no es ciega para ella. Las respuestas salieron de la caché y no costó nada. Los fallos que quedan son dígitos que las dos pasadas de OCR leen mal de la misma forma, y esos solo se corrigen volviendo a mirar la imagen.
 
 ### Etapa 2: extraer el total y la fecha
 
@@ -126,7 +131,7 @@ En Ubuntu o cualquier Linux con Python 3.11 o más reciente:
 sudo apt install tesseract-ocr tesseract-ocr-spa
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt && pip install -e . --no-deps
-pytest -q                                   # 144 pruebas en unos segundos
+pytest -q                                   # 147 pruebas en unos segundos
 
 bash scripts/get_sroie.sh                   # 626 recibos en data/sroie (unos 600 MB)
 folio ocr data/sroie/data/img/000.jpg --prep gray --psm 6
@@ -146,7 +151,8 @@ folio eval-llm --backend ollama --model qwen2.5:3b          # solo pregunta por 
 # O con la API de Claude (si la API pide un workspace, exporta también ANTHROPIC_WORKSPACE_ID):
 pip install anthropic && export ANTHROPIC_API_KEY=...
 folio eval-llm --backend anthropic --input image --mode all   # el reporte de arriba: Haiku lee los 200 escaneos de prueba, unos 6 centavos de dólar
-folio extract data/sroie/data/img/097.jpg --ranker models/total_ranker.json --llm anthropic --llm-input image
+folio eval-llm --backend anthropic --input image --mode all --guard   # con la protección: las respuestas salen de la caché
+folio extract data/sroie/data/img/097.jpg --ranker models/total_ranker.json --llm anthropic --llm-input image --guard
 ```
 
 ## Datos
