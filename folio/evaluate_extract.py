@@ -14,6 +14,8 @@ from the text could have found it).
 from __future__ import annotations
 
 import csv
+import datetime as dt
+import re
 from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
@@ -25,7 +27,26 @@ from .normalize import find_amounts, find_dates, parse_amount, parse_date
 from .sroie import Receipt
 
 FIELDS = ("total", "date")
-_PARSERS: dict[str, Callable] = {"total": parse_amount, "date": parse_date}
+
+
+def parse_label_date(text: str) -> dt.date | None:
+    """A labelled date. Besides what `parse_date` reads, a few SROIE labels drop the
+    separators (`20180304`, `25032018`), so those are read here too. This only affects
+    how the labels are read, not what the extractor can find."""
+    value = parse_date(text)
+    m = re.fullmatch(r"\s*(\d{8})\s*", text)
+    if value is None and m:
+        digits = m.group(1)
+        readings = ((digits[:4], digits[4:6], digits[6:]), (digits[4:], digits[2:4], digits[:2]))
+        for year, month, day in readings:  # yyyymmdd, then ddmmyyyy
+            try:
+                return dt.date(int(year), int(month), int(day))
+            except ValueError:
+                continue
+    return value
+
+
+_PARSERS: dict[str, Callable] = {"total": parse_amount, "date": parse_label_date}
 
 
 def _values_in(field: str, lines: Sequence[str]) -> set:
@@ -241,6 +262,16 @@ def render_markdown(rows: Sequence[FieldRow], header: str = "") -> str:
               "| Split | Check | Receipts | Total correct |", "|---|---|---|---|"]
     for c in summarize_checks(rows):
         lines.append(f"| {c.split} | {c.status} | {c.n} | {_rate(c.correct, c.n)} |")
+    lines += ["", "## Which rule gave the total", "",
+              "Rules on OCR text. Each answer comes from one rule of `extract_total`.", "",
+              "| Split | Rule | Receipts | Total correct |", "|---|---|---|---|"]
+    for split in splits:
+        rs = [r for r in rows if r.split == split and r.source == "ocr" and r.method == "rules"
+              and r.field == "total" and r.correct is not None]
+        for rule in sorted({r.rule for r in rs}, key=lambda x: (-sum(r.rule == x for r in rs), x)):
+            group = [r for r in rs if r.rule == rule]
+            lines.append(f"| {split} | {rule or '(no answer)'} | {len(group)} "
+                         f"| {_rate(sum(r.correct for r in group), len(group))} |")
     misses = [r for r in rows if r.source == "ocr" and r.method == "rules" and r.correct is False]
     if misses:
         lines += ["", "## Every miss of the rules on OCR text", "",

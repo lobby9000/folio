@@ -1,11 +1,13 @@
 """Splits, the OCR cache and the extraction scoring, without running Tesseract."""
 
+import datetime as dt
 from decimal import Decimal
 from pathlib import Path
 
 from folio import cache
 from folio.evaluate_extract import (
     compare_methods,
+    parse_label_date,
     read_csv,
     render_markdown,
     score_receipt,
@@ -68,6 +70,13 @@ def test_values_are_compared_after_normalising():
     assert rows["rules", "total"].in_text and not rows["rules", "date"].verbatim  # 19-10-26 is not 19/10/2026
 
 
+def test_labels_without_separators_are_read():
+    assert parse_label_date("20180304") == dt.date(2018, 3, 4)
+    assert parse_label_date("25032018") == dt.date(2018, 3, 25)
+    assert parse_label_date("19/10/2026") == dt.date(2026, 10, 19)
+    assert parse_label_date("not a date") is None
+
+
 def test_empty_labels_are_left_out():
     rows = score_receipt("dev", _receipt("r1", total=""), "ocr", ["TOTAL 12.25"])
     assert all(r.correct is None for r in rows if r.field == "total")
@@ -92,6 +101,7 @@ def test_summaries_pairs_and_report(tmp_path):
     report = render_markdown(rows, "header text")
     assert "| test | OCR | rules | 2 of 3" in report and "header text" in report
     assert "| test | c | total | `12.25` | 9.99 | yes | no | last total line | `TOTAL 9.99` |" in report
+    assert "| test | last total line | 3 | 2 of 3 (67%)" in report
     write_csv(rows, tmp_path / "out.csv")
     assert read_csv(tmp_path / "out.csv") == rows
     assert Decimal(read_csv(tmp_path / "out.csv")[0].predicted) == Decimal("12.25")

@@ -119,7 +119,7 @@ def _cmd_eval_extract(args: argparse.Namespace) -> int:
         f"OCR: `{args.prep}` preprocessing, page mode {args.psm}, "
         f"Tesseract {pytesseract.get_tesseract_version()}. *Reference* runs the same rules on the dataset's "
         "own transcription, to tell reading errors from rule errors. Values are compared after normalising, "
-        "so `RM 5.90` equals `5,90`. Receipts whose label is empty are left out of that field."
+        "so `RM 5.90` equals `5,90`. A receipt whose label for a field is empty is left out of that field."
     )
     report = evaluate_extract.render_markdown(rows, header)
     (out / "extract_eval.md").write_text(report, encoding="utf-8")
