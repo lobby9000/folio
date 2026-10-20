@@ -12,7 +12,7 @@ Turns scanned documents into structured, searchable fields: OCR, field extractio
 |---|---|---|
 | 1. OCR baseline | Tesseract, OpenCV preprocessing, CER, WER and field checks on SROIE receipts | Done |
 | 2. Extraction baseline | Rules for the total and the date, normalised amounts and dates, a cash check | Done |
-| 3. Learned and LLM extraction | A ranker learned from labelled receipts, an LLM with a JSON schema and textual evidence, and a cascade that only calls the LLM when unsure | Ranker done, LLM run pending |
+| 3. Learned and LLM extraction | A ranker learned from labelled receipts, and a cascade that asks an LLM reading the scan only when unsure | Done |
 | 4. Classification and clustering | Document type, and unlabelled grouping of layouts | Next |
 | 5. Search | BM25 and embeddings fused with RRF, scored with Recall@k and MRR | Planned |
 | 6. API and AWS | FastAPI in a Lambda container image behind API Gateway | Planned |
@@ -20,22 +20,36 @@ Turns scanned documents into structured, searchable fields: OCR, field extractio
 <!-- results:start -->
 ## Results so far
 
-### Stage 3: a learned ranker and the LLM cascade
+### Stage 3: a learned ranker, then an LLM that reads the scan
 
-Every amount OCR finds on a receipt becomes a candidate with 42 features, and a model learns from labelled receipts which candidate is the total. It was fitted on 426 receipts (the stage 2 development set plus 326 receipts no one had used), chosen by cross-validation there, and scored once on the same 200 held-out receipts as the rules. Full report: [`results/learned_eval.md`](results/learned_eval.md).
+Every amount OCR finds on a receipt becomes a candidate with 42 features, and a model learns from labelled receipts which candidate is the total. It was fitted on 426 receipts (the stage 2 development set plus 326 receipts no one had used), chosen by cross-validation there, and scored once on the same 200 held-out receipts as the rules. Then Claude Haiku 5.5 was asked for the total and the date through a JSON schema, once reading the OCR text and once reading the scanned image. The prompts and the routing were settled on the development receipts, and each way of asking ran once over all 200 test receipts, so the model alone and the cascade are scored on the same answers. Reports: [ranker](results/learned_eval.md), [Haiku reading the scan](results/llm_eval_test_all_image_anthropic_claude-haiku-5-5.md), [Haiku reading the OCR text](results/llm_eval_test_all_text_anthropic_claude-haiku-5-5.md).
 
-| On the 200 held-out receipts, OCR text | Total correct [95% CI] |
-|---|---|
-| Rules (stage 2) | 151 of 200, 76% [69%, 81%] |
-| Learned ranker, logistic regression | 163 of 200, 82% [76%, 86%] |
-| Ceiling: the total is among the amounts OCR produced | 176 of 200, 88% [83%, 92%] |
+| On the 200 held-out receipts | Total correct [95% CI] | Date correct [95% CI] | LLM cost per 1,000 receipts |
+|---|---|---|---|
+| Rules (stage 2), reading OCR text | 151, 76% [69%, 81%] | 161, 80% [74%, 85%] | none |
+| Learned ranker, reading OCR text | 163, 82% [76%, 86%] | the rules' date | none |
+| Haiku reading the OCR text | 157, 78% [72%, 84%] | 162, 81% [75%, 86%] | $0.13 |
+| Cascade: rules or ranker when sure, otherwise Haiku reading the scan | 187, 94% [89%, 96%] | 190, 95% [91%, 97%] | $0.13 |
+| Haiku reading the scan | 194, 97% [94%, 99%] | 198, 99% [96%, 100%] | $0.30 |
 
-* **The ranker beats the rules on the same receipts.** It is right on 15 receipts where the rules are wrong, against 3 the other way (exact McNemar p = 0.0075). Most of those 15 are receipts where no rule fired at all.
+Costs are at list prices: $0.10 per million input tokens and $0.50 per million output tokens for Haiku 5.5.
+
+**The ranker**
+
+* **It beats the rules on the same receipts.** It is right on 15 receipts where the rules are wrong, against 3 the other way (exact McNemar p = 0.0075). Most of those 15 are receipts where no rule fired at all.
 * **A simple model was enough.** Logistic regression and gradient-boosted trees tied in cross-validation (80.6% and 80.5% over 15 folds), so the logistic model was kept: its 42 weights fit in a JSON file and can be read. The heaviest say that the total tends to be the largest amount, the one the rules chose, a multiple of 5 sen (Malaysia rounds bills to 5 sen) and equal to cash minus change.
 * **Its score is a usable confidence.** On the most confident half of the held-out receipts it is right 98 times out of 100.
-* **That decides when to call an LLM.** The cascade keeps the rules' total when it matches cash minus change (71 receipts, 97% right) and the ranker's when its score is at least 0.95 (53 receipts, 87% right), a threshold chosen on the training receipts. Only the other 76 would go to the LLM, and on those the ranker alone is right 66% of the time.
-* **The LLM extractor is built and tested, not yet measured.** It answers through a JSON schema with the row each value came from, and a value is kept only if it is printed in the OCR text, so the model can choose but not invent. It runs on the Claude API or on a local model through Ollama. Its numbers will be added after a run over the routed receipts.
 * The rules, scored on the 326 receipts used here for training, find 73% of totals, close to their 76% on the test split. That is a second check that the test result was not luck.
+
+**The LLM and the cascade**
+
+* **Reading the scan beats reading the OCR text by 19 points.** Given the OCR rows, Haiku finds 78% of totals, fewer than the ranker. The right total is among the amounts OCR produced on only 176 of the 200 receipts (88%), and the answer check keeps only values printed in that text, so a total that OCR misread cannot be recovered. Given the image, the same model finds 97% of totals and 99% of dates. The development receipts had shown the same gap (79 against 96 of 99).
+* **The cascade makes 89 calls for 200 receipts.** It keeps the rules' total when it matches cash minus change (71 receipts) and the ranker's when its score is at least 0.95 (53 receipts), a threshold chosen on the training receipts. It asks Haiku about the other 76, and about 13 of the trusted ones because the rules found no date. It finds 94% of totals, right on 25 receipts where the ranker is wrong and wrong on 1 where the ranker is right (exact McNemar p = 8e-07).
+* **Asking about every receipt is still more accurate.** The model alone is right on 8 receipts where the cascade is wrong, against 1 the other way (p = 0.04), for $0.30 instead of $0.13 per 1,000 receipts. It also reads 8 dates right that the cascade takes from the rules and gets wrong. At these prices the cascade pays off when the number of calls is the limit, as under an API rate limit or when fewer receipts should leave the machine.
+* **The trusted routes fail on digits, not on lines.** In all 8 of those receipts OCR had misread or dropped a digit in the lines the cascade relied on (102.00 read as 702.00, 104.00 as 404.00, a cash payment of 94.00 as 4.00). The ranker's score says how sure it is of the line, and a wrong digit on the right line looks just as sure.
+* **The cash check has a blind spot.** When the rules find no total line, one of their fallbacks is cash minus change, and that answer then counts as confirmed by the same two lines. On the test receipts, a total read from a total line that matched cash minus change was right 62 times out of 62, and the fallback 7 times out of 9. The training receipts show the same gap (100 of 103 against 13 of 16), so the next version should trust the check only for a total read from a total line. This was found while reading the test misses, so scoring the fix will need receipts the project has not looked at.
+* **Where the model reading the scan fails.** It misread a digit on 3 of the 200 receipts (one by a single cent) and took the wrong line on 2: an amount before tax from the tax summary, and an "accepted total" that was the cash handed over. On the sixth it read the printed grand total, 3.90, where the label records the 25.60 subtotal before a deduction. Of its 2 missed dates, 1 is the check's fault: the model read 25032018 correctly, and the check does not parse dates printed without separators.
+* **Cost and speed.** A scan costs about 2,700 input tokens, and the median answer took 1.4 s with thinking turned off (Haiku 5.5 thinks by default). Every run of this stage, development receipts included, cost about $0.13. Answers are cached on disk under a hash of the prompt and the image, so regenerating a report sends no requests, and `--max-usd` stops a run before it spends more than a set amount.
 
 ### Stage 2: extracting the total and the date
 
@@ -77,13 +91,13 @@ The rules were written while looking only at 100 development receipts, then scor
 amounts on the receipt -> 42 features each -> logistic regression -> best candidate + score
       rules confirmed by cash?  -> keep the rules' total
       score >= 0.95?            -> keep the ranker's total
-      otherwise                 -> LLM with a JSON schema -> keep its total only if printed in the text
+      otherwise                 -> ask the LLM: the scan in, total and date out through a JSON schema
 ```
 
 * **Candidates and features** (`folio/learn.py`): every amount on every row. Features describe the row (total, subtotal, tax, cash and change words, with the OCR misreadings the rules already accept), the rows around it, its place on the page, the height of its row, the OCR confidence, how often the same value repeats, whether it is a multiple of 5 sen, whether it equals cash minus change, and whether the rules picked it. Evidence is also pooled per value, because the same amount printed on the total line and on the cash line is one answer seen twice.
 * **Model choice**: logistic regression and gradient-boosted trees, compared with 5-fold cross-validation repeated three times, always holding out whole receipts so a receipt never helps score itself. The routing threshold was chosen on out-of-fold predictions of the training receipts, never on the test split.
-* **LLM extractor** (`folio/llm.py`): the OCR rows go to the model numbered, and it must answer with the value and the row number for the total and the date, through structured outputs. The answer is checked against the text: a value that is not printed anywhere is rejected and the cheaper answer stands. Answers are cached on disk with a hash of the prompt.
-* **Evaluation** (`folio/evaluate_learned.py`, `folio/evaluate_llm.py`): paired comparisons on the same receipts, Wilson intervals, accuracy by confidence, the cascade's routes, and the LLM's answers by status (grounded, cited the wrong row, not in the text).
+* **LLM extractor** (`folio/llm.py`): the model reads the scan or the OCR text. Reading the scan, it answers with each value and the whole line it read it from, and a value is kept if it parses as an amount or a date. Reading the text, it gets the OCR rows numbered and answers with each value and its row number, and a value printed nowhere in the text is rejected, so the model can choose but not invent. Both answer through structured outputs, with the JSON schema enforced by the API, on the Claude API or on a local model through Ollama. Answers are cached on disk under a hash of the prompt, the schema and the image.
+* **Evaluation** (`folio/evaluate_learned.py`, `folio/evaluate_llm.py`): paired comparisons on the same receipts, Wilson intervals, accuracy by confidence, the cascade's routes, and the LLM's answers by status (read from the image, grounded in the text, cited the wrong row, not in the text).
 
 ## How the extraction stage works
 
@@ -120,7 +134,7 @@ Ubuntu or any Linux with Python 3.11 or newer:
 sudo apt install tesseract-ocr tesseract-ocr-spa
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt && pip install -e . --no-deps
-pytest -q                                   # 138 tests in a few seconds
+pytest -q                                   # 144 tests in a few seconds
 
 bash scripts/get_sroie.sh                   # 626 receipts into data/sroie (about 600 MB)
 folio ocr data/sroie/data/img/000.jpg --prep gray --psm 6
@@ -134,12 +148,13 @@ folio eval-extract --workers 2              # OCR cached in cache/ocr, writes re
 folio eval-learned                          # cross-validation, one test run, saves models/total_ranker.json
 folio extract data/sroie/data/img/097.jpg --ranker models/total_ranker.json
 
-# The LLM stage. With a local model (nothing leaves the machine):
+# The LLM stage. With a local model, reading the OCR text (nothing leaves the machine):
 ollama pull qwen2.5:3b
 folio eval-llm --backend ollama --model qwen2.5:3b          # asks only about the receipts the cascade routes
-# Or with the Claude API:
+# Or with the Claude API (if the API asks for a workspace, also export ANTHROPIC_WORKSPACE_ID):
 pip install anthropic && export ANTHROPIC_API_KEY=...
-folio eval-llm --backend anthropic --model claude-haiku-5-5 --mode all   # every receipt, to measure it alone
+folio eval-llm --backend anthropic --input image --mode all   # the report above: Haiku reads all 200 test scans, about 6 cents
+folio extract data/sroie/data/img/097.jpg --ranker models/total_ranker.json --llm anthropic --llm-input image
 ```
 
 ## Layout

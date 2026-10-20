@@ -10,7 +10,7 @@ Convierte documentos escaneados en campos estructurados y buscables: OCR, extrac
 |---|---|---|
 | 1. Línea base de OCR | Tesseract, preprocesamiento con OpenCV, CER, WER y verificación de campos sobre recibos de SROIE | Terminada |
 | 2. Línea base de extracción | Reglas para el total y la fecha, montos y fechas normalizados, verificación con el efectivo | Terminada |
-| 3. Extracción aprendida y con LLM | Un ranker aprendido de recibos etiquetados, un LLM con esquema JSON y evidencia textual, y una cascada que solo llama al LLM cuando hay duda | Ranker terminado, falta correr el LLM |
+| 3. Extracción aprendida y con LLM | Un ranker aprendido de recibos etiquetados, y una cascada que solo le pregunta a un LLM que lee el escaneo cuando hay duda | Terminada |
 | 4. Clasificación y agrupamiento | Tipo de documento y agrupamiento de formatos sin etiquetas | Siguiente |
 | 5. Búsqueda | BM25 y embeddings fusionados con RRF, medidos con Recall@k y MRR | Planeada |
 | 6. API y AWS | FastAPI en una imagen de contenedor para Lambda detrás de API Gateway | Planeada |
@@ -18,22 +18,36 @@ Convierte documentos escaneados en campos estructurados y buscables: OCR, extrac
 <!-- results:start -->
 ## Resultados hasta ahora
 
-### Etapa 3: un ranker aprendido y la cascada con LLM
+### Etapa 3: un ranker aprendido y después un LLM que lee el escaneo
 
-Cada monto que el OCR encuentra en un recibo se vuelve un candidato con 42 rasgos, y un modelo aprende de recibos etiquetados cuál de ellos es el total. Se ajustó con 426 recibos (los 100 de desarrollo de la etapa 2 más 326 que nadie había usado), se eligió con validación cruzada sobre ellos y se midió una sola vez sobre los mismos 200 recibos reservados que las reglas. Reporte completo: [`results/learned_eval.md`](results/learned_eval.md).
+Cada monto que el OCR encuentra en un recibo se vuelve un candidato con 42 rasgos, y un modelo aprende de recibos etiquetados cuál de ellos es el total. Se ajustó con 426 recibos (los 100 de desarrollo de la etapa 2 más 326 que nadie había usado), se eligió con validación cruzada sobre ellos y se midió una sola vez sobre los mismos 200 recibos reservados que las reglas. Después se le pidió a Claude Haiku 5.5 el total y la fecha con un esquema JSON, una vez leyendo el texto del OCR y otra leyendo la imagen escaneada. Los prompts y las rutas se definieron con los recibos de desarrollo, y cada forma de preguntar corrió una sola vez sobre los 200 recibos de prueba, así que el modelo solo y la cascada se miden con las mismas respuestas. Reportes: [ranker](results/learned_eval.md), [Haiku leyendo el escaneo](results/llm_eval_test_all_image_anthropic_claude-haiku-5-5.md), [Haiku leyendo el texto del OCR](results/llm_eval_test_all_text_anthropic_claude-haiku-5-5.md).
 
-| Sobre los 200 recibos reservados, texto del OCR | Total correcto [IC 95%] |
-|---|---|
-| Reglas (etapa 2) | 151 de 200, 76% [69%, 81%] |
-| Ranker aprendido, regresión logística | 163 de 200, 82% [76%, 86%] |
-| Techo: el total está entre los montos que leyó el OCR | 176 de 200, 88% [83%, 92%] |
+| Sobre los 200 recibos reservados | Total correcto [IC 95%] | Fecha correcta [IC 95%] | Costo del LLM por cada 1,000 recibos |
+|---|---|---|---|
+| Reglas (etapa 2), con el texto del OCR | 151, 76% [69%, 81%] | 161, 80% [74%, 85%] | ninguno |
+| Ranker aprendido, con el texto del OCR | 163, 82% [76%, 86%] | la fecha de las reglas | ninguno |
+| Haiku leyendo el texto del OCR | 157, 78% [72%, 84%] | 162, 81% [75%, 86%] | USD 0.13 |
+| Cascada: reglas o ranker cuando hay seguridad, si no Haiku leyendo el escaneo | 187, 94% [89%, 96%] | 190, 95% [91%, 97%] | USD 0.13 |
+| Haiku leyendo el escaneo | 194, 97% [94%, 99%] | 198, 99% [96%, 100%] | USD 0.30 |
 
-* **El ranker le gana a las reglas en los mismos recibos.** Acierta en 15 recibos donde las reglas fallan, contra 3 al revés (McNemar exacta, p = 0.0075). La mayoría de esos 15 son recibos donde ninguna regla dio respuesta.
+Costos a precio de lista: USD 0.10 por millón de tokens de entrada y USD 0.50 por millón de tokens de salida para Haiku 5.5.
+
+**El ranker**
+
+* **Le gana a las reglas en los mismos recibos.** Acierta en 15 recibos donde las reglas fallan, contra 3 al revés (McNemar exacta, p = 0.0075). La mayoría de esos 15 son recibos donde ninguna regla dio respuesta.
 * **Bastó un modelo simple.** La regresión logística y los árboles con gradient boosting empataron en validación cruzada (80.6% y 80.5% en 15 particiones), así que se quedó la logística: sus 42 pesos caben en un JSON y se pueden leer. Los más pesados dicen que el total suele ser el monto más grande, el que eligieron las reglas, un múltiplo de 5 sen (en Malasia las cuentas se redondean a 5 sen) e igual a efectivo menos cambio.
 * **Su puntaje sirve como confianza.** En la mitad más segura de los recibos reservados acierta 98 de 100.
-* **Eso decide cuándo llamar a un LLM.** La cascada se queda con el total de las reglas cuando coincide con efectivo menos cambio (71 recibos, 97% correctos) y con el del ranker cuando su puntaje es al menos 0.95 (53 recibos, 87% correctos), un umbral elegido con los recibos de entrenamiento. Solo los otros 76 irían al LLM, y en esos el ranker solo acierta el 66%.
-* **El extractor con LLM está construido y probado, todavía no medido.** Responde con un esquema JSON que incluye el renglón de donde sale cada valor, y un valor solo se acepta si está impreso en el texto del OCR, así que el modelo puede elegir pero no inventar. Corre con la API de Claude o con un modelo local en Ollama. Sus cifras se agregan después de correrlo sobre los recibos que la cascada le manda.
 * Las reglas, medidas sobre los 326 recibos que aquí se usaron para entrenar, encuentran el 73% de los totales, cerca de su 76% en prueba. Es una segunda señal de que el resultado de prueba no fue suerte.
+
+**El LLM y la cascada**
+
+* **Leer el escaneo le gana por 19 puntos a leer el texto del OCR.** Con los renglones del OCR, Haiku encuentra el 78% de los totales, menos que el ranker. El total correcto está entre los montos que produjo el OCR en solo 176 de los 200 recibos (88%), y la verificación solo acepta valores impresos en ese texto, así que un total que el OCR leyó mal no se puede recuperar. Con la imagen, el mismo modelo encuentra el 97% de los totales y el 99% de las fechas. Los recibos de desarrollo ya mostraban la misma diferencia (79 contra 96 de 99).
+* **La cascada hace 89 llamadas para 200 recibos.** Se queda con el total de las reglas cuando coincide con efectivo menos cambio (71 recibos) y con el del ranker cuando su puntaje es al menos 0.95 (53 recibos), un umbral elegido con los recibos de entrenamiento. A Haiku le pregunta por los otros 76, y por 13 de los confiables porque las reglas no encontraron fecha. Encuentra el 94% de los totales: acierta en 25 recibos donde el ranker falla y falla en 1 donde el ranker acierta (McNemar exacta, p = 8e-07).
+* **Preguntar por todos los recibos sigue siendo más preciso.** El modelo solo acierta en 8 recibos donde la cascada falla, contra 1 al revés (p = 0.04), por USD 0.30 en lugar de 0.13 por cada 1,000 recibos. También lee bien 8 fechas que la cascada toma de las reglas y tiene mal. Con estos precios la cascada conviene cuando el límite es el número de llamadas, por ejemplo con un límite de solicitudes de la API o cuando conviene que salgan menos recibos de la máquina.
+* **Las rutas confiables fallan en dígitos, no en renglones.** En esos 8 recibos el OCR leyó mal o perdió un dígito en los renglones en que se apoyó la cascada (102.00 leído como 702.00, 104.00 como 404.00, un pago en efectivo de 94.00 como 4.00). El puntaje del ranker dice qué tan seguro está del renglón, y un dígito equivocado en el renglón correcto se ve igual de seguro.
+* **La verificación con el efectivo tiene un punto ciego.** Cuando las reglas no encuentran un renglón de total, uno de sus respaldos es efectivo menos cambio, y esa respuesta luego cuenta como confirmada por los mismos dos renglones. En prueba, un total leído de un renglón de total que coincidía con efectivo menos cambio acertó 62 de 62 veces, y el respaldo 7 de 9. Los recibos de entrenamiento muestran la misma diferencia (100 de 103 contra 13 de 16), así que la siguiente versión debe confiar en la verificación solo cuando el total salió de un renglón de total. Esto se encontró revisando los fallos de prueba, así que medir el arreglo necesitará recibos que el proyecto no haya visto.
+* **Dónde falla el modelo que lee el escaneo.** Leyó mal un dígito en 3 de los 200 recibos (en uno por un solo centavo) y tomó el renglón equivocado en 2: un monto antes de impuestos de la tabla de impuestos, y un "accepted total" que en realidad era el efectivo entregado. En el sexto leyó el gran total impreso, 3.90, donde la etiqueta registra el subtotal de 25.60 antes de un descuento. De sus 2 fechas falladas, 1 es culpa de la verificación: el modelo leyó bien 25032018 y la verificación no reconoce fechas impresas sin separadores.
+* **Costo y velocidad.** Un escaneo cuesta unos 2,700 tokens de entrada y la respuesta mediana tardó 1.4 s, con el razonamiento (thinking) apagado, porque Haiku 5.5 razona por defecto. Todas las corridas de esta etapa, incluidos los recibos de desarrollo, costaron unos USD 0.13. Las respuestas se guardan en disco con un hash del prompt y de la imagen, así que regenerar un reporte no manda solicitudes, y `--max-usd` detiene una corrida antes de que gaste más de un monto fijado.
 
 ### Etapa 2: extraer el total y la fecha
 
@@ -75,13 +89,13 @@ Las reglas se escribieron viendo solo 100 recibos de desarrollo y después se mi
 montos del recibo -> 42 rasgos cada uno -> regresión logística -> mejor candidato + puntaje
       ¿reglas confirmadas por el efectivo? -> se queda el total de las reglas
       ¿puntaje >= 0.95?                     -> se queda el total del ranker
-      si no                                  -> LLM con esquema JSON -> su total solo si está impreso en el texto
+      si no                                  -> se le pregunta al LLM: entra el escaneo, salen total y fecha con un esquema JSON
 ```
 
 * **Candidatos y rasgos** (`folio/learn.py`): cada monto de cada renglón. Los rasgos describen el renglón (palabras de total, subtotal, impuesto, efectivo y cambio, con las lecturas del OCR que las reglas ya aceptan), los renglones vecinos, su lugar en la página, la altura del renglón, la confianza del OCR, cuántas veces se repite el mismo valor, si es múltiplo de 5 sen, si es igual a efectivo menos cambio y si las reglas lo eligieron. La evidencia también se junta por valor, porque el mismo monto impreso en el renglón del total y en el del efectivo es una sola respuesta vista dos veces.
 * **Elección del modelo**: regresión logística y árboles con gradient boosting, comparados con validación cruzada de 5 particiones repetida tres veces, siempre separando recibos completos para que ningún recibo ayude a calificarse a sí mismo. El umbral de la cascada se eligió con predicciones fuera de partición sobre los recibos de entrenamiento, nunca con los de prueba.
-* **Extractor con LLM** (`folio/llm.py`): los renglones del OCR van numerados al modelo, que debe responder con el valor y el número de renglón del total y la fecha, mediante salidas estructuradas. La respuesta se verifica contra el texto: un valor que no está impreso en ningún lado se rechaza y se queda la respuesta más barata. Las respuestas se guardan en disco con un hash del prompt.
-* **Evaluación** (`folio/evaluate_learned.py`, `folio/evaluate_llm.py`): comparaciones pareadas sobre los mismos recibos, intervalos de Wilson, exactitud por nivel de confianza, las rutas de la cascada y las respuestas del LLM por estado (con evidencia, renglón equivocado, no está en el texto).
+* **Extractor con LLM** (`folio/llm.py`): el modelo lee el escaneo o el texto del OCR. Con el escaneo, responde cada valor junto con el renglón completo de donde lo leyó, y el valor se acepta si se puede leer como monto o como fecha. Con el texto, recibe los renglones del OCR numerados y responde cada valor con su número de renglón, y un valor que no está impreso en ningún lado del texto se rechaza, así que el modelo puede elegir pero no inventar. En los dos casos responde con salidas estructuradas, con el esquema JSON impuesto por la API, ya sea con la API de Claude o con un modelo local en Ollama. Las respuestas se guardan en disco con un hash del prompt, del esquema y de la imagen.
+* **Evaluación** (`folio/evaluate_learned.py`, `folio/evaluate_llm.py`): comparaciones pareadas sobre los mismos recibos, intervalos de Wilson, exactitud por nivel de confianza, las rutas de la cascada y las respuestas del LLM por estado (leída de la imagen, con evidencia en el texto, renglón equivocado, no está en el texto).
 
 ## Cómo funciona la etapa de extracción
 
@@ -112,7 +126,7 @@ En Ubuntu o cualquier Linux con Python 3.11 o más reciente:
 sudo apt install tesseract-ocr tesseract-ocr-spa
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt && pip install -e . --no-deps
-pytest -q                                   # 138 pruebas en unos segundos
+pytest -q                                   # 144 pruebas en unos segundos
 
 bash scripts/get_sroie.sh                   # 626 recibos en data/sroie (unos 600 MB)
 folio ocr data/sroie/data/img/000.jpg --prep gray --psm 6
@@ -126,12 +140,13 @@ folio eval-extract --workers 2              # guarda el OCR en cache/ocr y escri
 folio eval-learned                          # validación cruzada, una corrida de prueba, guarda models/total_ranker.json
 folio extract data/sroie/data/img/097.jpg --ranker models/total_ranker.json
 
-# La etapa con LLM. Con un modelo local (nada sale de tu máquina):
+# La etapa con LLM. Con un modelo local que lee el texto del OCR (nada sale de tu máquina):
 ollama pull qwen2.5:3b
 folio eval-llm --backend ollama --model qwen2.5:3b          # solo pregunta por los recibos que manda la cascada
-# O con la API de Claude:
+# O con la API de Claude (si la API pide un workspace, exporta también ANTHROPIC_WORKSPACE_ID):
 pip install anthropic && export ANTHROPIC_API_KEY=...
-folio eval-llm --backend anthropic --model claude-haiku-5-5 --mode all   # todos los recibos, para medirlo solo
+folio eval-llm --backend anthropic --input image --mode all   # el reporte de arriba: Haiku lee los 200 escaneos de prueba, unos 6 centavos de dólar
+folio extract data/sroie/data/img/097.jpg --ranker models/total_ranker.json --llm anthropic --llm-input image
 ```
 
 ## Datos
