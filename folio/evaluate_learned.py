@@ -40,7 +40,7 @@ def label(receipt: Receipt, ocr: OcrResult) -> LabelledReceipt:
 
 
 @dataclass
-class TestRow:
+class ScoredReceipt:
     receipt: str
     gold: str
     rules: str
@@ -59,7 +59,7 @@ class Report:
     cv: dict[str, list[float]]
     chosen: str
     rules_on_train: tuple[int, int]
-    rows: list[TestRow]
+    rows: list[ScoredReceipt]
     weights: dict[str, float]
 
     def counts(self) -> dict[str, int]:
@@ -93,7 +93,7 @@ def run(fit_pool: Sequence[tuple[Receipt, OcrResult, str]], test: Sequence[tuple
         lr = label(receipt, ocr)
         rules = extract_total(ocr.text.splitlines())
         got = pick(ranker.model, lr)
-        rows.append(TestRow(
+        rows.append(ScoredReceipt(
             receipt=receipt.id, gold=receipt.fields["total"],
             rules="" if rules is None else str(rules.value),
             rules_correct=rules is not None and rules.value == lr.gold,
@@ -113,7 +113,7 @@ def _rules_value(ocr: OcrResult) -> Decimal | None:
     return None if got is None else got.value
 
 
-def coverage_table(rows: Sequence[TestRow], shares: Sequence[float] = (0.5, 0.7, 0.8, 0.9, 1.0)) -> list:
+def coverage_table(rows: Sequence[ScoredReceipt], shares: Sequence[float] = (0.5, 0.7, 0.8, 0.9, 1.0)):
     """Accuracy on the most confident share of receipts, by the ranker's score."""
     ranked = sorted(rows, key=lambda r: -r.ranker_score)
     out = []
@@ -124,16 +124,34 @@ def coverage_table(rows: Sequence[TestRow], shares: Sequence[float] = (0.5, 0.7,
     return out
 
 
-def write_csv(rows: Sequence[TestRow], path: Path) -> None:
+ROUTE_THRESHOLD = 0.95  # chosen on out-of-fold predictions over the fit pool, never on test
+
+
+def route_summary(rows: Sequence[ScoredReceipt], threshold: float = ROUTE_THRESHOLD) -> dict[str, int]:
+    """Receipts the cascade would settle without an LLM: the rules' total confirmed by cash
+    minus change, or the ranker at least `threshold` sure. The rest would go to the LLM."""
+    confirmed = [r for r in rows if r.rules_checked]
+    confident = [r for r in rows if not r.rules_checked and r.ranker_score >= threshold]
+    rest = [r for r in rows if not r.rules_checked and r.ranker_score < threshold]
+    return {
+        "confirmed": len(confirmed), "confirmed_ok": sum(r.rules_correct for r in confirmed),
+        "confident": len(confident), "confident_ok": sum(r.ranker_correct for r in confident),
+        "rest": len(rest), "rest_ok": sum(r.ranker_correct for r in rest),
+    }
+
+
+def write_csv(rows: Sequence[ScoredReceipt], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=[f.name for f in fields(TestRow)])
+        w = csv.DictWriter(f, fieldnames=[f.name for f in fields(ScoredReceipt)])
         w.writeheader()
         for r in rows:
             w.writerow(asdict(r))
 
 
 def _rate(k: int, n: int) -> str:
+    if not n:
+        return "n/a"
     lo, hi = wilson_interval(k, n)
     return f"{k} of {n} ({100 * k / n:.0f}%) [{100 * lo:.0f}%, {100 * hi:.0f}%]"
 
@@ -170,6 +188,17 @@ def render_markdown(report: Report, header: str = "") -> str:
               "| Most confident share | Receipts | Correct | Lowest score kept |", "|---|---|---|---|"]
     for share, k, hits, low in coverage_table(report.rows):
         lines.append(f"| {share:.0%} | {k} | {_rate(hits, k)} | {low:.2f} |")
+    rs = route_summary(report.rows)
+    lines += ["", "## Routing for stage 3", "",
+              "The cascade keeps the rules' total when it matches cash minus change, keeps the ranker's "
+              "when "
+              f"its score is at least {ROUTE_THRESHOLD} (a threshold chosen on the fit pool), and sends the "
+              "rest to an LLM.", "",
+              "| Route | Test receipts | Total correct without the LLM |", "|---|---|---|",
+              f"| Confirmed by cash minus change | {rs['confirmed']} "
+              f"| {_rate(rs['confirmed_ok'], rs['confirmed'])} |",
+              f"| Confident ranker | {rs['confident']} | {_rate(rs['confident_ok'], rs['confident'])} |",
+              f"| To the LLM | {rs['rest']} | {_rate(rs['rest_ok'], rs['rest'])} |"]
     lines += ["", "## What the logistic model weighs most", "",
               "Standardised weights: the change in log-odds of being the total for one standard deviation of "
               "the feature. Fitted on the whole pool.", "",

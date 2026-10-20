@@ -10,13 +10,30 @@ Convierte documentos escaneados en campos estructurados y buscables: OCR, extrac
 |---|---|---|
 | 1. Línea base de OCR | Tesseract, preprocesamiento con OpenCV, CER, WER y verificación de campos sobre recibos de SROIE | Terminada |
 | 2. Línea base de extracción | Reglas para el total y la fecha, montos y fechas normalizados, verificación con el efectivo | Terminada |
-| 3. Extracción aprendida y con LLM | Un clasificador de renglones, y un LLM con esquema JSON y evidencia textual | Siguiente |
-| 4. Clasificación y agrupamiento | Tipo de documento y agrupamiento de formatos sin etiquetas | Planeada |
+| 3. Extracción aprendida y con LLM | Un ranker aprendido de recibos etiquetados, un LLM con esquema JSON y evidencia textual, y una cascada que solo llama al LLM cuando hay duda | Ranker terminado, falta correr el LLM |
+| 4. Clasificación y agrupamiento | Tipo de documento y agrupamiento de formatos sin etiquetas | Siguiente |
 | 5. Búsqueda | BM25 y embeddings fusionados con RRF, medidos con Recall@k y MRR | Planeada |
 | 6. API y AWS | FastAPI en una imagen de contenedor para Lambda detrás de API Gateway | Planeada |
 
 <!-- results:start -->
 ## Resultados hasta ahora
+
+### Etapa 3: un ranker aprendido y la cascada con LLM
+
+Cada monto que el OCR encuentra en un recibo se vuelve un candidato con 42 rasgos, y un modelo aprende de recibos etiquetados cuál de ellos es el total. Se ajustó con 426 recibos (los 100 de desarrollo de la etapa 2 más 326 que nadie había usado), se eligió con validación cruzada sobre ellos y se midió una sola vez sobre los mismos 200 recibos reservados que las reglas. Reporte completo: [`results/learned_eval.md`](results/learned_eval.md).
+
+| Sobre los 200 recibos reservados, texto del OCR | Total correcto [IC 95%] |
+|---|---|
+| Reglas (etapa 2) | 151 de 200, 76% [69%, 81%] |
+| Ranker aprendido, regresión logística | 163 de 200, 82% [76%, 86%] |
+| Techo: el total está entre los montos que leyó el OCR | 176 de 200, 88% [83%, 92%] |
+
+* **El ranker le gana a las reglas en los mismos recibos.** Acierta en 15 recibos donde las reglas fallan, contra 3 al revés (McNemar exacta, p = 0.0075). La mayoría de esos 15 son recibos donde ninguna regla dio respuesta.
+* **Bastó un modelo simple.** La regresión logística y los árboles con gradient boosting empataron en validación cruzada (80.6% y 80.5% en 15 particiones), así que se quedó la logística: sus 42 pesos caben en un JSON y se pueden leer. Los más pesados dicen que el total suele ser el monto más grande, el que eligieron las reglas, un múltiplo de 5 sen (en Malasia las cuentas se redondean a 5 sen) e igual a efectivo menos cambio.
+* **Su puntaje sirve como confianza.** En la mitad más segura de los recibos reservados acierta 98 de 100.
+* **Eso decide cuándo llamar a un LLM.** La cascada se queda con el total de las reglas cuando coincide con efectivo menos cambio (71 recibos, 97% correctos) y con el del ranker cuando su puntaje es al menos 0.95 (53 recibos, 87% correctos), un umbral elegido con los recibos de entrenamiento. Solo los otros 76 irían al LLM, y en esos el ranker solo acierta el 66%.
+* **El extractor con LLM está construido y probado, todavía no medido.** Responde con un esquema JSON que incluye el renglón de donde sale cada valor, y un valor solo se acepta si está impreso en el texto del OCR, así que el modelo puede elegir pero no inventar. Corre con la API de Claude o con un modelo local en Ollama. Sus cifras se agregan después de correrlo sobre los recibos que la cascada le manda.
+* Las reglas, medidas sobre los 326 recibos que aquí se usaron para entrenar, encuentran el 73% de los totales, cerca de su 76% en prueba. Es una segunda señal de que el resultado de prueba no fue suerte.
 
 ### Etapa 2: extraer el total y la fecha
 
@@ -52,6 +69,20 @@ Las reglas se escribieron viendo solo 100 recibos de desarrollo y después se mi
 * **Ampliar al doble empeoró y tardó más del doble.** Enderezar casi no cambió nada, lo que sugiere que estos recibos se escanearon derechos.
 <!-- results:end -->
 
+## Cómo funciona la etapa aprendida
+
+```
+montos del recibo -> 42 rasgos cada uno -> regresión logística -> mejor candidato + puntaje
+      ¿reglas confirmadas por el efectivo? -> se queda el total de las reglas
+      ¿puntaje >= 0.95?                     -> se queda el total del ranker
+      si no                                  -> LLM con esquema JSON -> su total solo si está impreso en el texto
+```
+
+* **Candidatos y rasgos** (`folio/learn.py`): cada monto de cada renglón. Los rasgos describen el renglón (palabras de total, subtotal, impuesto, efectivo y cambio, con las lecturas del OCR que las reglas ya aceptan), los renglones vecinos, su lugar en la página, la altura del renglón, la confianza del OCR, cuántas veces se repite el mismo valor, si es múltiplo de 5 sen, si es igual a efectivo menos cambio y si las reglas lo eligieron. La evidencia también se junta por valor, porque el mismo monto impreso en el renglón del total y en el del efectivo es una sola respuesta vista dos veces.
+* **Elección del modelo**: regresión logística y árboles con gradient boosting, comparados con validación cruzada de 5 particiones repetida tres veces, siempre separando recibos completos para que ningún recibo ayude a calificarse a sí mismo. El umbral de la cascada se eligió con predicciones fuera de partición sobre los recibos de entrenamiento, nunca con los de prueba.
+* **Extractor con LLM** (`folio/llm.py`): los renglones del OCR van numerados al modelo, que debe responder con el valor y el número de renglón del total y la fecha, mediante salidas estructuradas. La respuesta se verifica contra el texto: un valor que no está impreso en ningún lado se rechaza y se queda la respuesta más barata. Las respuestas se guardan en disco con un hash del prompt.
+* **Evaluación** (`folio/evaluate_learned.py`, `folio/evaluate_llm.py`): comparaciones pareadas sobre los mismos recibos, intervalos de Wilson, exactitud por nivel de confianza, las rutas de la cascada y las respuestas del LLM por estado (con evidencia, renglón equivocado, no está en el texto).
+
 ## Cómo funciona la etapa de extracción
 
 ```
@@ -81,7 +112,7 @@ En Ubuntu o cualquier Linux con Python 3.11 o más reciente:
 sudo apt install tesseract-ocr tesseract-ocr-spa
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt && pip install -e . --no-deps
-pytest -q                                   # 116 pruebas en unos segundos
+pytest -q                                   # 138 pruebas en unos segundos
 
 bash scripts/get_sroie.sh                   # 626 recibos en data/sroie (unos 600 MB)
 folio ocr data/sroie/data/img/000.jpg --prep gray --psm 6
@@ -91,11 +122,21 @@ folio eval-ocr --limit 100 --workers 2      # escribe results/ocr_eval.md y resu
 folio extract data/sroie/data/img/097.jpg   # total y fecha, con el renglón de donde salió cada uno
 folio extract data/sroie/data/img/097.jpg --json
 folio eval-extract --workers 2              # guarda el OCR en cache/ocr y escribe results/extract_eval.md y .csv
+
+folio eval-learned                          # validación cruzada, una corrida de prueba, guarda models/total_ranker.json
+folio extract data/sroie/data/img/097.jpg --ranker models/total_ranker.json
+
+# La etapa con LLM. Con un modelo local (nada sale de tu máquina):
+ollama pull qwen2.5:3b
+folio eval-llm --backend ollama --model qwen2.5:3b          # solo pregunta por los recibos que manda la cascada
+# O con la API de Claude:
+pip install anthropic && export ANTHROPIC_API_KEY=...
+folio eval-llm --backend anthropic --model claude-haiku-5-5 --mode all   # todos los recibos, para medirlo solo
 ```
 
 ## Datos
 
-[SROIE](https://rrc.cvc.uab.es/?ch=13) (ICDAR 2019) tiene recibos escaneados de Malasia con cajas de texto por renglón y cuatro campos clave: empresa, fecha, dirección y total. El script de descarga usa el espejo [zzzDavid/ICDAR-2019-SROIE](https://github.com/zzzDavid/ICDAR-2019-SROIE). Los datos son para uso de investigación y no se guardan en este repositorio. Los 626 recibos se dividen una sola vez: 100 para desarrollo (la muestra de la etapa 1), 200 reservados para prueba y 326 sin usar, guardados para una prueba nueva después de cualquier cambio a las reglas. Sus transcripciones tienen algo de ruido propio, así que ni un OCR perfecto llegaría a error cero.
+[SROIE](https://rrc.cvc.uab.es/?ch=13) (ICDAR 2019) tiene recibos escaneados de Malasia con cajas de texto por renglón y cuatro campos clave: empresa, fecha, dirección y total. El script de descarga usa el espejo [zzzDavid/ICDAR-2019-SROIE](https://github.com/zzzDavid/ICDAR-2019-SROIE). Los datos son para uso de investigación y no se guardan en este repositorio. Los 626 recibos se dividen una sola vez: 100 para desarrollo (la muestra de la etapa 1), 200 reservados para prueba y los otros 326 para entrenamiento. Esos 326 no se usaron en la etapa 2 y en la etapa 3 se volvieron los datos de entrenamiento del ranker, así que los cambios futuros se juzgan con validación cruzada sobre ellos y con la única corrida de prueba que recibe cada método. Sus transcripciones tienen algo de ruido propio, así que ni un OCR perfecto llegaría a error cero.
 
 ## Licencia
 

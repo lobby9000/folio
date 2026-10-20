@@ -11,11 +11,12 @@ from pathlib import Path
 import cv2
 import pytesseract
 
-from . import evaluate_extract, evaluate_learned
+from . import evaluate_extract, evaluate_learned, evaluate_llm
 from .cache import DEFAULT_CACHE, ocr_receipts
 from .evaluate import compare, evaluate, render_markdown, summarize, write_csv
 from .extract import EXTRACTORS
 from .learn import TotalRanker
+from .llm import BACKENDS, CachedBackend, cascade
 from .ocr import OcrConfig, run_ocr, tesseract_available
 from .preprocess import PIPELINES
 from .sroie import SPLITS, load_receipts, load_split
@@ -80,8 +81,14 @@ def _cmd_extract(args: argparse.Namespace) -> int:
     result = run_ocr(PIPELINES[args.prep](img), OcrConfig(lang=args.lang, psm=args.psm))
     lines = result.text.splitlines()
     found = {field: extract(lines) for field, extract in EXTRACTORS["rules"].items()}
-    if args.ranker:
-        found["total"] = TotalRanker.load(Path(args.ranker)).extract(result.rows)
+    if args.ranker or args.llm:
+        ranked = TotalRanker.load(Path(args.ranker or "models/total_ranker.json")).extract(result.rows)
+        found["total"] = ranked
+        if args.llm:
+            backend = BACKENDS[args.llm](**({"model": args.llm_model} if args.llm_model else {}))
+            routed = cascade(lines, EXTRACTORS["rules"]["total"](lines), found["date"], ranked, backend.ask)
+            found["total"], found["date"] = routed.total, routed.date
+            print(f"[route: {routed.route}]", file=sys.stderr)
     if args.json:
         print(json.dumps({
             field: None if e is None else {"value": str(e.value), "rule": e.rule, "row": e.line + 1,
@@ -164,6 +171,43 @@ def _cmd_eval_learned(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_eval_llm(args: argparse.Namespace) -> int:
+    receipts = load_split(Path(args.data), args.split)
+    if args.limit:
+        receipts = receipts[: args.limit]
+    if not receipts:
+        print(f"No receipts in the {args.split} split under {args.data}.", file=sys.stderr)
+        return 2
+    ocr = ocr_receipts(receipts, args.prep, OcrConfig(lang=args.lang, psm=args.psm), Path(args.cache),
+                       args.workers)
+    ranker = TotalRanker.load(Path(args.ranker))
+    backend = BACKENDS[args.backend](**({"model": args.model} if args.model else {}))
+    cached = CachedBackend(backend, Path(args.llm_cache))
+    asked = 0
+
+    def ask(receipt_id: str, prompt: str):
+        nonlocal asked
+        asked += 1
+        print(f"  asking {backend.name} about receipt {receipt_id} ({asked})", file=sys.stderr)
+        return cached.ask(receipt_id, prompt)
+
+    rows = evaluate_llm.evaluate([(r, ocr[r.id]) for r in receipts], ranker, ask, args.mode, args.threshold)
+    tag = f"{backend.name}_{backend.model}".replace(":", "-").replace("/", "-")
+    out = Path(args.out)
+    evaluate_llm.write_csv(rows, out / f"llm_eval_{tag}.csv")
+    header = (
+        f"Model `{backend.model}` through `{backend.name}`, mode `{args.mode}`, {len(rows)} labelled "
+        "receipts "
+        f"of the `{args.split}` split. OCR: `{args.prep}`, page mode {args.psm}. Ranker: `{args.ranker}`, "
+        f"routing threshold {args.threshold}. Requests sent in this run: {cached.calls} (the rest came from "
+        f"the cache in `{args.llm_cache}`)."
+    )
+    report = evaluate_llm.render_markdown(rows, header)
+    (out / f"llm_eval_{tag}.md").write_text(report, encoding="utf-8")
+    print(report)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="folio", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -194,6 +238,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_ext.add_argument("--lang", default="eng")
     p_ext.add_argument("--json", action="store_true", help="print JSON with the evidence for each field")
     p_ext.add_argument("--ranker", help="answer the total with a saved ranker, e.g. models/total_ranker.json")
+    p_ext.add_argument("--llm", choices=sorted(BACKENDS), help="run the cascade, asking this LLM when unsure")
+    p_ext.add_argument("--llm-model", help="model name for --llm, e.g. claude-haiku-5-5 or qwen2.5:3b")
     p_ext.set_defaults(func=_cmd_extract)
 
     p_eext = sub.add_parser("eval-extract", help="score the total and date extractors on SROIE")
@@ -218,6 +264,25 @@ def build_parser() -> argparse.ArgumentParser:
     p_learn.add_argument("--out", default="results")
     p_learn.add_argument("--model", default="models/total_ranker.json", help="where to save the fitted model")
     p_learn.set_defaults(func=_cmd_eval_learned)
+
+    p_llm = sub.add_parser("eval-llm", help="score the LLM extractor and the cascade")
+    p_llm.add_argument("--backend", choices=sorted(BACKENDS), default="ollama")
+    p_llm.add_argument("--model", help="defaults: claude-haiku-5-5 for anthropic, qwen2.5:3b for ollama")
+    p_llm.add_argument("--mode", choices=["cascade", "all"], default="cascade",
+                       help="ask the model only when unsure (cascade) or about every receipt (all)")
+    p_llm.add_argument("--split", choices=SPLITS, default="test")
+    p_llm.add_argument("--limit", type=int, help="only the first N receipts, for a quick try")
+    p_llm.add_argument("--threshold", type=float, default=evaluate_learned.ROUTE_THRESHOLD)
+    p_llm.add_argument("--ranker", default="models/total_ranker.json")
+    p_llm.add_argument("--data", default="data/sroie/data", help="folder with img/, box/ and key/")
+    p_llm.add_argument("--prep", default="gray", choices=sorted(PIPELINES))
+    p_llm.add_argument("--psm", type=int, default=6)
+    p_llm.add_argument("--lang", default="eng")
+    p_llm.add_argument("--cache", default=str(DEFAULT_CACHE))
+    p_llm.add_argument("--llm-cache", default="cache/llm")
+    p_llm.add_argument("--workers", type=int, default=2)
+    p_llm.add_argument("--out", default="results")
+    p_llm.set_defaults(func=_cmd_eval_llm)
     return parser
 
 

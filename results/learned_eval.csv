@@ -1,0 +1,201 @@
+receipt,gold,rules,rules_correct,rules_checked,ranker,ranker_correct,ranker_score,reachable,evidence
+000,9.00,9.60,False,,9.60,False,0.499,True,Round: :d Total (RM): 9.60
+003,80.90,50.90,False,True,100.00,False,0.0712,True,CASH : 100.00
+005,31.00,34.00,False,False,34.00,False,0.4089,False,Plastic 2 18.50 34.00
+007,20.00,20.00,True,True,20.00,True,1.0,True,$UB TOTAL : 20.00
+008,112.45,112.46,False,,112.46,False,0.3691,False,Total (RM) : 112.46
+009,26.60,26.60,True,False,26.60,True,0.9259,True,TakeOut Total (incl GST) 26.60
+012,15.90,15.90,True,,15.90,True,0.8792,True,"Total Incl, of GST 15.90"
+015,15.90,15.90,True,,15.90,True,0.8792,True,"Total Incl, of GST 15.90"
+016,73.00,,False,,73.00,True,0.2258,True,CA. $ RM = 73.00 :
+017,39.80,39.80,True,True,39.80,True,0.9988,True,TOTAL : RM 39. 80
+018,73.00,,False,,73.00,True,0.2258,True,CA. $ RM = 73.00 :
+019,86.00,86.00,True,,86.00,True,0.9985,True,Total Gross ARM 86.00
+024,55.10,55.10,True,,55.10,True,0.8285,True,TOTAL JJ) ~~ 55.10
+030,$8.20,8.20,True,True,8.20,True,1.0,True,Total Amount: $8.20
+031,75.00,78.00,False,False,78.00,False,0.9554,True,Total Sales Incl GST 78.00
+038,13.10,13.10,True,,13.10,True,0.9849,True,SubTotal i 13.10
+040,343.95,,False,,296.00,False,0.2777,False,2 SUB TOTAL 296.00
+047,170.00,,False,,170.00,True,0.115,True,RM 170. 00
+049,8.00,8.00,True,,8.00,True,0.935,True,Total (RM) + 8.00
+051,$7.60,7.60,True,False,7.60,True,0.9465,True,: Total Amount: $7.60
+056,$8.70,8.70,True,True,8.70,True,0.9999,True,Total Amaunt: $8.70
+057,$7.10,7.10,True,False,7.10,True,0.8851,True,Total Amount: $7.10
+060,77.20,77.20,True,True,77.20,True,0.9925,True,Item 2 Total with GST @ 6% 77.20
+061,129.30,129.30,True,,129.30,True,0.9925,True,Sub Total 129.30
+068,3.20,3.20,True,True,3.20,True,0.9961,True,Total Includes GST 0% 3.20
+072,49.40,49.40,True,True,49.40,True,0.9884,True,Total RM 49. 40
+074,102.00,702.00,False,,702.00,False,0.9876,True,G008OR5 ¥ 17.00 702.00 SR
+094,5.90,5.90,True,True,5.90,True,0.9993,True,Sub-total 5.90
+098,42.40,,False,,42.40,True,0.2646,True,Sub Total : 42.40
+100,7.42,7.42,True,True,7.42,True,0.9964,True,of GST): (7.42 )
+102,73.30,13.30,False,,13.30,False,0.8394,True,Total Rowiided 13.30
+104,102.40,102.40,True,,102.40,True,0.881,True,Total 102.40
+105,30.30,30.30,True,True,30.30,True,0.9926,True,Total (Inclusive of GST): 30.30
+107,48.15,48.15,True,True,50.00,False,0.0488,False,CASH : 50.00
+109,7.00,7.00,True,,7.00,True,0.9982,True,Subtotal 7.00
+112,RM4.00,4.00,True,,4.00,True,0.6243,True,Total gigp 4.00
+113,93.07,93.07,True,True,93.07,True,0.9839,True,Total Sales (Inclusive of GST) : 93.07
+114,44.73,44.73,True,True,44.73,True,0.9838,True,Total Sales (Inclusive of GST) : 44.73
+115,23.32,23.32,True,True,23.32,True,0.9967,True,1943 1 23.32 23.32 SR |
+121,21.20,21.20,True,True,21.20,True,0.9996,True,1512 2 10.60 21.20 SR
+124,5.30,0.30,False,False,5.30,True,0.8859,True,1924 1 5.30 530 SR
+130,63.60,63.60,True,True,63.60,True,0.9991,True,| Total Sales (Inclusive of GST) : 63.60)
+132,79.35,79.35,True,True,79.35,True,0.9752,True,TOTAL (Including GST) 79. 35
+134,21.40,21.40,True,,21.40,True,0.7786,True,otal “AttdrRounding 21.40
+137,9.10,9.10,True,,9.10,True,0.9995,True,Total (Inclusive of GST): 9.10
+138,4.80,4.80,True,,4.80,True,0.9993,True,"Total (Inclusive of GST): 4,80"
+139,6.70,6.70,True,,6.70,True,0.9995,True,"Total (Inclusive of GST): 6,70"
+140,9.60,9.60,True,,9.60,True,0.9993,True,"Total (Inclusive of GST): 9,60"
+141,7.00,7.00,True,,7.00,True,0.9993,True,Total (Inclusive of GST): 7.00
+148,13.10,13.10,True,True,13.10,True,0.9994,True,TakeOut Total (incl GST) 13.10
+152,RM41.45,,False,,41.45,True,0.2916,True,SUBTOTAL (QTY = 4) RY41.45
+156,RM 29.70,29.70,True,True,29.70,True,0.9942,True,Total Sales RM 29. 70
+162,213.00,213.00,True,,213.00,True,0.9895,True,Total Sales (Inclusive 6ST) RM 213.00
+163,108.50,106.50,False,False,108.50,True,0.5634,True,489 TIGER BEER CAN 4k4%320K =RM108.50 =
+169,RM29.30,,False,,30.30,False,0.4317,False,"cash RM30,30"
+171,12.00,12.00,True,,12.00,True,0.9806,True,SUBTOTAL 12.00
+174,20.50,20.50,True,True,20.50,True,0.9825,True,OTC-000127 1 20.50 2050 SR
+177,127.20,127.20,True,True,127.20,True,0.9941,True,101869 2 60.00 63.60 127.20 SR
+181,6.00,,False,,6.00,True,0.7752,True,"PPF P1 1,000 6 6.00"
+183,21.20,21.20,True,True,21.20,True,0.9566,True,Sales : 21.20
+189,63.35,63.35,True,True,63.35,True,0.9554,True,CASH 63.35
+199,8.00,8.00,True,,8.00,True,0.9984,True,Sis 8.00
+200,42.90,42.90,True,True,42.90,True,0.9862,True,Total Incl. GST@6% RM 42.90
+206,21.00,21.00,True,True,21.00,True,0.9988,True,Total Qty : 5 Sub-Total : 21.00
+207,14.90,14.90,True,True,14.90,True,0.986,True,Total Incl. GST@6x RM 14.90
+212,29.00,,False,,29.00,True,0.0762,True,“Total 2736 164 29.00
+214,13.50,13.50,True,,13.50,True,0.9974,True,Total Inclusive GST 6% : 13.50
+218,329.10,329.10,True,,329.10,True,0.9959,True,329.10
+219,100.00,,False,,100.00,True,0.2481,True,& Total Sales (i clusive of GST) 100.00 _
+222,41.00,41.00,True,True,41.00,True,0.9839,True,Total RH 41.00
+225,56.00,56.00,True,,56.00,True,0.9382,True,REGLE PAR ESPECE 56.00 DH
+230,8.50,,False,,6.00,False,0.4688,False,SR ms 6.00 G46
+231,119.70,119.70,True,True,42.30,False,0.0132,False,9088524 1% 2.30 42.30
+236,14.85,14.05,False,,14.05,False,0.9759,False,NET TOTAL 14.05
+242,12.60,12.60,True,False,12.60,True,0.0756,True,Total Incl. GST:RH 12.60
+243,20.05,20.05,True,,20.05,True,0.6945,True,Total Incl. G57T:kH 20.05
+250,104.00,404.00,False,,404.00,False,0.974,False,Subtotal : 404.00
+251,15.40,15.40,True,True,15.40,True,0.9379,True,Total Sales (Inclusive of GST' : 15.40
+252,12.37,0.49,False,,27.65,False,0.1373,False,Chanae RK 27.65
+253,113.80,113.80,True,,113.80,True,0.9994,True,Total (Inclusive of GST): 113.80
+255,94.00,4.00,False,True,4.00,False,0.6712,False,CASH 4.00
+258,RM1.00,,False,,1.00,True,0.0463,True,Type Rate A RM1. 00
+264,118.35,1128.25,False,,1128.25,False,0.9533,False,Total Incl. GST:RM 1128.25
+270,250.00,250.00,True,,250.00,True,0.9984,True,OTAL AMOUNT 235.85 14.15 250.00
+273,165.00,165.00,True,,165.00,True,0.8356,True,"Total Inclusive GST: 165,00"
+276,72.75,72.75,True,True,72.75,True,0.9497,True,"Rounding RN 72,75"
+277,72.00,72.00,True,True,72.00,True,0.9991,True,fotal Sales Incl. GST @6% : 72.00
+284,$7.10,7.10,True,True,7.10,True,1.0,True,Total Amount: $7.10
+290,12.30,12.30,True,False,12.30,True,0.437,True,2 TOTAL 12.30 .
+291,$7.00,7.00,True,True,7.00,True,1.0,True,Total Amount: $7.00
+293,270.00,,False,,,False,0.0,False,
+296,25.60,3.90,False,,3.90,False,0.5403,True,Grand Total : 3.90
+301,10.20,10.20,True,True,10.20,True,1.0,True,Sub-tota | 10.20
+303,30.90,30.30,False,,30.30,False,0.8257,False,| Grand Total : 30.30
+304,39.60,39.60,True,,39.60,True,0.9525,True,Grand Total : 39.60
+305,81.80,81.60,False,,81.60,False,0.7523,True,TOTAL:MYR 81.60
+306,18.90,18.90,True,,18.90,True,0.8444,True,Total Due (GST inc): 18.90
+307,46.55,0.01,False,,43.90,False,0.1309,False,SR @ 64 43.90 2 64
+309,6.40,6.40,True,True,6.40,True,0.9962,True,Total Inclusive GST: 6.40
+311,122.80,122.20,False,False,122.80,True,0.0371,True,Total After Adi Ine] GST 122.80
+312,38.37,38.37,True,False,38.37,True,0.5897,True,SUBTOTAL 38.37
+313,52.80,52.80,True,,52.80,True,0.9984,True,ITEM: 3 Total with GST @ 6% 52.80
+315,11.25,,False,,20.00,False,0.6681,True,Payment -20.00
+316,1.38,,False,,1.30,False,0.0669,True,GST TA AMT RM1. 30
+321,3.70,3.70,True,True,3.70,True,0.9888,True,Spritzer H/Vater 1.51 ea 3.70 $
+329,53.14,53.14,True,,53.14,True,0.8001,True,Total Payable: 53.14
+330,20.21,20.21,True,,20.21,True,0.7394,True,Total Payable: 20.21
+331,94.19,94.19,True,,94.19,True,0.8171,True,Total Payable: 94.19
+336,39.78,39.78,True,,39.78,True,0.7719,True,Total Payable: 39.78
+337,73.55,73.55,True,,73.55,True,0.9257,True,Total Pays. a: 73.55
+339,7.97,7.97,True,,7.97,True,0.6119,True,Total Payable: 7.97
+342,19.31,19.34,False,,19.34,False,0.7631,False,Total Payable: 19.34
+343,51.88,,False,,32.05,False,0.1237,False,Total 6% supplies (Inc. GST): 32.05
+346,26.80,26.80,True,,26.80,True,0.9881,True,Total Payable. 26.80
+350,"1,007.50",1007.50,True,True,1007.50,True,0.999,True,"Total Qty: 65.00 1,007.50"
+354,40.18,40.18,True,,40.18,True,0.8385,True,Total Payable: 40.18
+355,3.21,3.21,True,,11.10,False,0.2816,True,Total @% supplies: 11.10
+358,62.60,62.60,True,,62.60,True,0.9876,True,"Total Payable: 62,60"
+359,14.79,14.79,True,,14.79,True,0.7515,True,Total Payable: 14.79
+360,41.87,41.87,True,,41.87,True,0.7746,True,Total Payable: 41.87
+361,31.05,31.05,True,,31.05,True,0.9848,True,Total Payable: 31.05
+363,58.86,58.86,True,,58.86,True,0.8172,True,", Total Payable: 58.86 ,"
+369,33.80,33.80,True,,33.80,True,0.9848,True,Total Payable: 33.80
+373,46.06,46.06,True,,46.06,True,0.8294,True,Total Payable: 46.06
+375,31.32,31.32,True,,31.32,True,0.8189,True,Total Payable: 31.32
+376,54.19,54.19,True,,54.19,True,0.7825,True,Total Payable: 54.19
+381,RM111.90,10.56,False,,111.90,True,0.0584,True,MID RE AT KO74: 111.90
+384,31.80,31.80,True,False,31.80,True,0.8448,True,5384 STAR BRAND GARBAGE BAG RM31.80 s
+387,82.80,,False,,,False,0.0,False,
+390,RM 57.40,57.40,True,False,57.40,True,0.7821,True,TOTAL INCL. GST@4Z RM 57.40
+393,28.20,28.20,True,True,28.20,True,0.9993,True,TakeOut Total (incl GST) 28.20
+395,RM8.35,0.47,False,False,10.50,False,0.0943,False,Cash RM10.50
+401,RM 12.50,12.50,True,True,12.50,True,0.9941,True,§936136217897 1X 12.50 12.50
+403,RM 68.10,68.10,True,True,68.10,True,0.9938,True,TOTAL INCL. GST@4% RM 68.10
+404,6.85,,False,,,False,0.0,False,
+407,89.00,87.00,False,,87.00,False,0.92,False,| 87.00 1 87.00 §
+410,RM31.60,31.60,True,,31.60,True,0.9937,True,“Qh: —*6 Total Amount: RM31.60
+411,39.90,39.90,True,True,39.90,True,0.999,True,"Total Sales Inclusive 6% GST (3) 39,90"
+417,148.00,148.00,True,,148.00,True,0.9998,True,Subtotal : 148.00
+422,16.30,16.30,True,True,16.30,True,0.9849,True,Balance Due: 16.30
+423,30.70,30.70,True,,30.70,True,0.9908,True,Total Amount: 30.70
+425,$8.70,8.70,True,,8.70,True,0.9964,True,Total Amount: $8.70 .
+426,99.90,99.90,True,,99.90,True,0.9986,True,"Tota] Sales Inc] GST 99,90 | |"
+432,$6.60,6.60,True,True,6.60,True,1.0,True,Total Amount: $6.60
+437,11.10,13.40,False,,13.40,False,0.9071,False,Tatal Rounded 13.40 |
+438,$8.40,8.40,True,,8.40,True,0.9998,True,Total Amount: $8.40 .
+439,$10.70,10.70,True,,10.70,True,0.9957,True,Total Amount: $10.70
+441,RM 31.20,31.20,True,,31.20,True,0.9593,True,Total Incl. GST@6% RM 31.20
+443,RM 15.40,15.40,True,,15.40,True,0.993,True,Total Incl. GST@6y RM 15.40
+446,48.10,48.10,True,True,48.10,True,0.9893,True,Total Incl. GST@6% RM 48.10
+449,26.10,26.10,True,True,26.10,True,0.9963,True,Total After Adj Incl GST 26.10
+456,51.00,51.00,True,,51.00,True,0.9969,True,Total Amt incl. GST @ 6 % : 51.00
+460,9.45,9.45,True,False,9.45,True,0.4873,True,Total Sales (Inclusive of GST) 9.45
+462,164.80,164.80,True,,164.80,True,0.9878,True,Total Amount: 164. 80
+464,15.15,15.15,True,True,15.15,True,0.9394,True,. TOTAL RM 15.15
+466,70.30,70.30,True,,70.30,True,0.9514,True,Take™:+ Total (incl GST) 70.30
+467,25.00,25.00,True,True,25.00,True,0.9996,True,1264 - 4 25.00 25.00 SR
+468,41.20,41.20,True,True,41.20,True,0.9965,True,Iten psy SubTotal Incl GST 41.20
+469,35.00,35.00,True,True,35.00,True,0.995,True,1X 35.0000 < 35.00. SR
+470,14.90,14.90,True,True,14.90,True,0.9994,True,Total 14.90
+471,8.70,8.70,True,True,8.70,True,0.994,True,3 X 2.9000 S 8.70. Sh
+472,8.70,8.70,True,True,8.70,True,0.9976,True,3 X 2.9000 = 8.70 SR
+481,3.90,3.90,True,True,3.90,True,0.9933,True,Total Sales Inclusive GST @6% 3.90
+484,9.30,9.30,True,True,9.30,True,0.9972,True,Total 9.30
+491,46.90,46.90,True,True,46.90,True,0.9983,True,Total 46.90
+502,33.60,33.60,True,True,33.60,True,0.9981,True,Total 33.60
+508,16.00,6.06,False,,16.00,True,0.2986,True,SUB-TOTAL {G87} 16.00
+509,30.00,30.00,True,,30.00,True,0.9745,True,9555795202031 { 30.00 30.00 $
+513,16.00,16.00,True,,16.00,True,0.8978,True,SUB-TOTAL (681) 16.0
+517,6.00,6.00,True,True,6.00,True,0.9986,True,SUB TOTAL 6.00
+522,RM7.70,7.70,True,True,7.70,True,0.9998,True,Nett Total: RM7.70
+525,127.35,127.35,True,True,127.35,True,0.997,True,Total After Adj Incl GST 127.35
+526,RM7.70,7.70,True,,7.70,True,0.9982,True,| Nett Total: RM7.70
+527,RM6.00,6.00,True,True,6.00,True,1.0,True,Total Amount: RM6.00
+536,RM8.20,8.20,True,True,8.20,True,0.9998,True,Nett Total: RM8.20
+544,11.60,11.66,False,,11.66,False,0.2495,False,TOTAL 11.66
+547,4.80,4.80,True,,4.80,True,0.9993,True,Total (Inclusive of GST): 4.80
+548,19.40,19.40,True,,19.40,True,0.9994,True,Total (Inclusive of GST): 19.40
+562,15.00,14.00,False,,15.00,True,0.8544,True,1x 15.00 15.00 SR
+563,50.00,50.00,True,,50.00,True,0.999,True,Total Gross C RM 50.00
+566,6.70,6.70,True,,6.70,True,0.9996,True,Total (Inclusive o 6.70
+569,7.80,7.80,True,,7.80,True,0.9987,True,Total (Inclusive of GST): 7. 80
+570,9.60,9.60,True,,9.60,True,0.9998,True,Total (Inclusive of GST): 9.60
+575,137.15,137.45,False,False,137.45,False,0.5216,False,Total Sales (Inclusive 637) RM 137.45
+576,22.90,22.90,True,True,22.90,True,0.6686,True,| Rounding RH 22.90
+578,20.90,20.90,True,,20.90,True,0.7465,True,z = 04 20.90 00
+579,11.25,11.25,True,True,11.25,True,0.9791,True,"TOTAL ROUNDED RM 11,25"
+582,19.00,19.00,True,True,19.00,True,0.9704,True,Cash ; 19.00
+584,5.00,10.00,False,,10.00,False,0.8298,True,Accepted total 10.00 RH
+589,7.70,7.70,True,True,7.70,True,0.9997,True,SUB TOTAL 7.70
+595,65.70,65.70,True,,65.70,True,0.9938,True,TOTAL: 65.70 |
+596,52.00,52.00,True,,52.00,True,0.9999,True,Total (Inclusive of GST): 52.00
+603,190.80,190.80,True,True,190.80,True,0.9993,True,Totd/Sales (inclusive of GST) : 190.80
+605,178.08,178.08,True,True,178.08,True,0.9892,True,Total Sales (Inclusive of GST) : 178.08
+609,68.90,68.90,True,True,68.90,True,0.9998,True,101870 1 65.00 68.90 68.90 SR
+610,85.20,65.20,False,,65.20,False,0.9741,True,Net Total 65.20
+613,7.30,7.30,True,True,7.30,True,0.993,True,Max HD-10K Stapler 7.30 T
+618,35.00,35.00,True,,35.00,True,0.9987,True,Total (Inclusive of GST): 35.00
+620,58.00,58.00,True,,58.00,True,0.9998,True,Total (Inclusive of GST): 58.00
+624,102.00,702.00,False,,702.00,False,0.9876,True,G008OR5 ¥ 17.00 702.00 SR

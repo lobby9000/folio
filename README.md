@@ -12,13 +12,30 @@ Turns scanned documents into structured, searchable fields: OCR, field extractio
 |---|---|---|
 | 1. OCR baseline | Tesseract, OpenCV preprocessing, CER, WER and field checks on SROIE receipts | Done |
 | 2. Extraction baseline | Rules for the total and the date, normalised amounts and dates, a cash check | Done |
-| 3. Learned and LLM extraction | A line classifier, and an LLM with a JSON schema and textual evidence | Next |
-| 4. Classification and clustering | Document type, and unlabelled grouping of layouts | Planned |
+| 3. Learned and LLM extraction | A ranker learned from labelled receipts, an LLM with a JSON schema and textual evidence, and a cascade that only calls the LLM when unsure | Ranker done, LLM run pending |
+| 4. Classification and clustering | Document type, and unlabelled grouping of layouts | Next |
 | 5. Search | BM25 and embeddings fused with RRF, scored with Recall@k and MRR | Planned |
 | 6. API and AWS | FastAPI in a Lambda container image behind API Gateway | Planned |
 
 <!-- results:start -->
 ## Results so far
+
+### Stage 3: a learned ranker and the LLM cascade
+
+Every amount OCR finds on a receipt becomes a candidate with 42 features, and a model learns from labelled receipts which candidate is the total. It was fitted on 426 receipts (the stage 2 development set plus 326 receipts no one had used), chosen by cross-validation there, and scored once on the same 200 held-out receipts as the rules. Full report: [`results/learned_eval.md`](results/learned_eval.md).
+
+| On the 200 held-out receipts, OCR text | Total correct [95% CI] |
+|---|---|
+| Rules (stage 2) | 151 of 200, 76% [69%, 81%] |
+| Learned ranker, logistic regression | 163 of 200, 82% [76%, 86%] |
+| Ceiling: the total is among the amounts OCR produced | 176 of 200, 88% [83%, 92%] |
+
+* **The ranker beats the rules on the same receipts.** It is right on 15 receipts where the rules are wrong, against 3 the other way (exact McNemar p = 0.0075). Most of those 15 are receipts where no rule fired at all.
+* **A simple model was enough.** Logistic regression and gradient-boosted trees tied in cross-validation (80.6% and 80.5% over 15 folds), so the logistic model was kept: its 42 weights fit in a JSON file and can be read. The heaviest say that the total tends to be the largest amount, the one the rules chose, a multiple of 5 sen (Malaysia rounds bills to 5 sen) and equal to cash minus change.
+* **Its score is a usable confidence.** On the most confident half of the held-out receipts it is right 98 times out of 100.
+* **That decides when to call an LLM.** The cascade keeps the rules' total when it matches cash minus change (71 receipts, 97% right) and the ranker's when its score is at least 0.95 (53 receipts, 87% right), a threshold chosen on the training receipts. Only the other 76 would go to the LLM, and on those the ranker alone is right 66% of the time.
+* **The LLM extractor is built and tested, not yet measured.** It answers through a JSON schema with the row each value came from, and a value is kept only if it is printed in the OCR text, so the model can choose but not invent. It runs on the Claude API or on a local model through Ollama. Its numbers will be added after a run over the routed receipts.
+* The rules, scored on the 326 receipts used here for training, find 73% of totals, close to their 76% on the test split. That is a second check that the test result was not luck.
 
 ### Stage 2: extracting the total and the date
 
@@ -53,6 +70,20 @@ The rules were written while looking only at 100 development receipts, then scor
 * **Binarising before Tesseract hurt.** Otsu raised the CER on 68 of the 100 receipts. A likely reason: Tesseract already thresholds internally, and a second global threshold can erase faint strokes of thermal print.
 * **Upscaling 2x hurt and was more than twice as slow.** Deskewing barely changed anything, which suggests these receipts were scanned straight.
 <!-- results:end -->
+
+## How the learned stage works
+
+```
+amounts on the receipt -> 42 features each -> logistic regression -> best candidate + score
+      rules confirmed by cash?  -> keep the rules' total
+      score >= 0.95?            -> keep the ranker's total
+      otherwise                 -> LLM with a JSON schema -> keep its total only if printed in the text
+```
+
+* **Candidates and features** (`folio/learn.py`): every amount on every row. Features describe the row (total, subtotal, tax, cash and change words, with the OCR misreadings the rules already accept), the rows around it, its place on the page, the height of its row, the OCR confidence, how often the same value repeats, whether it is a multiple of 5 sen, whether it equals cash minus change, and whether the rules picked it. Evidence is also pooled per value, because the same amount printed on the total line and on the cash line is one answer seen twice.
+* **Model choice**: logistic regression and gradient-boosted trees, compared with 5-fold cross-validation repeated three times, always holding out whole receipts so a receipt never helps score itself. The routing threshold was chosen on out-of-fold predictions of the training receipts, never on the test split.
+* **LLM extractor** (`folio/llm.py`): the OCR rows go to the model numbered, and it must answer with the value and the row number for the total and the date, through structured outputs. The answer is checked against the text: a value that is not printed anywhere is rejected and the cheaper answer stands. Answers are cached on disk with a hash of the prompt.
+* **Evaluation** (`folio/evaluate_learned.py`, `folio/evaluate_llm.py`): paired comparisons on the same receipts, Wilson intervals, accuracy by confidence, the cascade's routes, and the LLM's answers by status (grounded, cited the wrong row, not in the text).
 
 ## How the extraction stage works
 
@@ -89,7 +120,7 @@ Ubuntu or any Linux with Python 3.11 or newer:
 sudo apt install tesseract-ocr tesseract-ocr-spa
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt && pip install -e . --no-deps
-pytest -q                                   # 116 tests in a few seconds
+pytest -q                                   # 138 tests in a few seconds
 
 bash scripts/get_sroie.sh                   # 626 receipts into data/sroie (about 600 MB)
 folio ocr data/sroie/data/img/000.jpg --prep gray --psm 6
@@ -99,6 +130,16 @@ folio eval-ocr --limit 100 --workers 2      # writes results/ocr_eval.md and res
 folio extract data/sroie/data/img/097.jpg   # total and date, with the row each came from
 folio extract data/sroie/data/img/097.jpg --json
 folio eval-extract --workers 2              # OCR cached in cache/ocr, writes results/extract_eval.md and .csv
+
+folio eval-learned                          # cross-validation, one test run, saves models/total_ranker.json
+folio extract data/sroie/data/img/097.jpg --ranker models/total_ranker.json
+
+# The LLM stage. With a local model (nothing leaves the machine):
+ollama pull qwen2.5:3b
+folio eval-llm --backend ollama --model qwen2.5:3b          # asks only about the receipts the cascade routes
+# Or with the Claude API:
+pip install anthropic && export ANTHROPIC_API_KEY=...
+folio eval-llm --backend anthropic --model claude-haiku-5-5 --mode all   # every receipt, to measure it alone
 ```
 
 ## Layout
@@ -115,7 +156,12 @@ folio/
   normalize.py    amounts and dates read as values
   extract.py      rules for the total and the date, and the baselines
   evaluate_extract.py  scoring of the extractors and the report
-  cli.py          folio ocr, extract, eval-ocr and eval-extract
+  learn.py        candidates, features and the learned ranker
+  evaluate_learned.py  model choice by cross-validation and the test run
+  llm.py          LLM backends, the JSON schema, the evidence check and the cascade
+  evaluate_llm.py  scoring of the LLM and the cascade
+  cli.py          folio ocr, extract, eval-ocr, eval-extract, eval-learned and eval-llm
+models/           the fitted ranker as JSON
 tests/            unit tests and end-to-end checks with drawn images, no dataset files
 scripts/          dataset download
 results/          experiment outputs
@@ -123,7 +169,7 @@ results/          experiment outputs
 
 ## Data
 
-[SROIE](https://rrc.cvc.uab.es/?ch=13) (ICDAR 2019) has scanned receipts from Malaysia with line-level text boxes and four key fields: company, date, address and total. The download script uses the [zzzDavid/ICDAR-2019-SROIE](https://github.com/zzzDavid/ICDAR-2019-SROIE) mirror. The data is for research use and is not stored in this repository. The 626 receipts are split once: 100 for development (the stage 1 sample), 200 held out for testing, and 326 kept unused for a fresh test after any change to the rules. Its transcriptions have some noise of their own (a box file may say `SDN BND` where the key file says `SDN BHD`), so even perfect OCR would not reach zero error.
+[SROIE](https://rrc.cvc.uab.es/?ch=13) (ICDAR 2019) has scanned receipts from Malaysia with line-level text boxes and four key fields: company, date, address and total. The download script uses the [zzzDavid/ICDAR-2019-SROIE](https://github.com/zzzDavid/ICDAR-2019-SROIE) mirror. The data is for research use and is not stored in this repository. The 626 receipts are split once: 100 for development (the stage 1 sample), 200 held out for testing, and the other 326 for training. The 326 stayed unused through stage 2 and became the ranker's training data in stage 3, so later changes are judged by cross-validation on them and by the one test run each method gets. Its transcriptions have some noise of their own (a box file may say `SDN BND` where the key file says `SDN BHD`), so even perfect OCR would not reach zero error.
 
 ## Licence
 
