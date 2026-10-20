@@ -85,7 +85,7 @@ class AnthropicBackend:
         if client is None:
             import anthropic  # optional dependency: pip install anthropic
 
-            client = anthropic.Anthropic()
+            client = anthropic.Anthropic(max_retries=5)  # backs off on rate limits
         self.client, self.model, self.max_tokens = client, model, max_tokens
 
     def ask(self, prompt: str) -> Answer:
@@ -135,6 +135,21 @@ class OllamaBackend:
 
 BACKENDS = {"anthropic": AnthropicBackend, "ollama": OllamaBackend}
 
+# USD per million tokens (input, output), list prices for prompts under 100k tokens, October 2026.
+PRICES = {
+    "claude-haiku-5-5": (0.10, 0.50),
+    "claude-sonnet-5-5": (2.00, 10.00),
+    "claude-opus-5-5": (4.00, 20.00),
+}
+
+
+def cost_usd(model: str, input_tokens: int, output_tokens: int) -> float | None:
+    """List-price cost of the given tokens, or None for a model without a known price (local ones)."""
+    if model not in PRICES:
+        return None
+    price_in, price_out = PRICES[model]
+    return (input_tokens * price_in + output_tokens * price_out) / 1_000_000
+
 
 class CachedBackend:
     """Answers stored per receipt under `cache_dir`, keyed by model and prompt."""
@@ -144,6 +159,8 @@ class CachedBackend:
         model = getattr(backend, "model", "model").replace("/", "_").replace(":", "_")
         self.dir = Path(cache_dir) / f"{backend.name}__{model}"
         self.calls = 0  # requests actually sent, cache hits excluded
+        self.new_input_tokens = 0
+        self.new_output_tokens = 0
 
     def ask(self, key: str, prompt: str) -> Answer:
         digest = hashlib.sha256(f"{PROMPT_VERSION}\n{SYSTEM}\n{prompt}".encode()).hexdigest()[:16]
@@ -155,6 +172,8 @@ class CachedBackend:
                               saved.get("output_tokens"))
         answer = self.backend.ask(prompt)
         self.calls += 1
+        self.new_input_tokens += answer.input_tokens or 0
+        self.new_output_tokens += answer.output_tokens or 0
         self.dir.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps({"prompt_sha": digest, "answer": answer.data, "seconds": answer.seconds,
                                     "input_tokens": answer.input_tokens,

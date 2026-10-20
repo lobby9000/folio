@@ -16,7 +16,7 @@ from .cache import DEFAULT_CACHE, ocr_receipts
 from .evaluate import compare, evaluate, render_markdown, summarize, write_csv
 from .extract import EXTRACTORS
 from .learn import TotalRanker
-from .llm import BACKENDS, CachedBackend, cascade
+from .llm import BACKENDS, CachedBackend, cascade, cost_usd
 from .ocr import OcrConfig, run_ocr, tesseract_available
 from .preprocess import PIPELINES
 from .sroie import SPLITS, load_receipts, load_split
@@ -187,6 +187,10 @@ def _cmd_eval_llm(args: argparse.Namespace) -> int:
 
     def ask(receipt_id: str, prompt: str):
         nonlocal asked
+        spent = cost_usd(backend.model, cached.new_input_tokens, cached.new_output_tokens)
+        if spent is not None and spent > args.max_usd:
+            raise SystemExit(f"Stopped: this run has spent about ${spent:.4f}, over --max-usd "
+                             f"{args.max_usd}. Answers so far are cached, so rerunning resumes from here.")
         asked += 1
         print(f"  asking {backend.name} about receipt {receipt_id} ({asked})", file=sys.stderr)
         return cached.ask(receipt_id, prompt)
@@ -202,6 +206,13 @@ def _cmd_eval_llm(args: argparse.Namespace) -> int:
         f"routing threshold {args.threshold}. Requests sent in this run: {cached.calls} (the rest came from "
         f"the cache in `{args.llm_cache}`)."
     )
+    tokens_in = sum(r.input_tokens or 0 for r in rows)
+    tokens_out = sum(r.output_tokens or 0 for r in rows)
+    total = cost_usd(backend.model, tokens_in, tokens_out)
+    run = cost_usd(backend.model, cached.new_input_tokens, cached.new_output_tokens)
+    if total is not None:
+        header += (f" Cost at list prices: ${total:.4f} for all the answers in this report, "
+                   f"${run:.4f} of it spent in this run.")
     report = evaluate_llm.render_markdown(rows, header)
     (out / f"llm_eval_{tag}.md").write_text(report, encoding="utf-8")
     print(report)
@@ -273,6 +284,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_llm.add_argument("--split", choices=SPLITS, default="test")
     p_llm.add_argument("--limit", type=int, help="only the first N receipts, for a quick try")
     p_llm.add_argument("--threshold", type=float, default=evaluate_learned.ROUTE_THRESHOLD)
+    p_llm.add_argument("--max-usd", type=float, default=1.0,
+                       help="stop sending requests once this run has spent about this much (API models only)")
     p_llm.add_argument("--ranker", default="models/total_ranker.json")
     p_llm.add_argument("--data", default="data/sroie/data", help="folder with img/, box/ and key/")
     p_llm.add_argument("--prep", default="gray", choices=sorted(PIPELINES))

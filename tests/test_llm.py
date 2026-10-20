@@ -185,3 +185,15 @@ def test_evaluation_reports_routes_and_the_model_alone():
     assert all_rows[0].route == "confident ranker" and all_rows[0].asked
     md = render_markdown(all_rows, "header")
     assert "| LLM alone (grounded answers only) | 1 of 1" in md and "## Cost" in md
+
+
+def test_list_price_cost_and_new_request_accounting(tmp_path):
+    from folio.llm import cost_usd
+
+    assert cost_usd("claude-haiku-5-5", 1_000_000, 0) == pytest.approx(0.10)
+    assert cost_usd("claude-sonnet-5-5", 0, 100_000) == pytest.approx(1.00)
+    assert cost_usd("qwen2.5:3b", 1000, 1000) is None
+    cached = CachedBackend(FakeBackend(answer()), tmp_path)
+    cached.ask("r1", "a prompt")
+    cached.ask("r1", "a prompt")  # from the cache: free
+    assert (cached.calls, cached.new_input_tokens, cached.new_output_tokens) == (1, 300, 20)
