@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pytesseract
 
-from .layout import Box, boxes_to_text
+from .layout import Box, boxes_to_text, group_rows
 
 
 @dataclass(frozen=True)
@@ -38,9 +38,21 @@ class OcrResult:
         return boxes_to_text(self.words)
 
     @property
+    def rows(self) -> list[list[Box]]:
+        """Words grouped into rows, top to bottom, each left to right."""
+        return group_rows(self.words)
+
+    @property
     def mean_confidence(self) -> float | None:
         confs = [w.conf for w in self.words if w.conf is not None]
         return sum(confs) / len(confs) if confs else None
+
+    def to_dict(self) -> dict:
+        return {"words": [[w.text, w.left, w.top, w.right, w.bottom, w.conf] for w in self.words]}
+
+    @classmethod
+    def from_dict(cls, data: dict) -> OcrResult:
+        return cls([Box(*word) for word in data["words"]])
 
 
 def tesseract_available() -> bool:

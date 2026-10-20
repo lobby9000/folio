@@ -27,3 +27,33 @@ def test_eval_command_writes_both_reports(fake_sroie, tmp_path):
     assert code == 0
     assert (out / "ocr_eval.csv").read_text().count("\n") == 1 + 2 * 2  # header + receipts x pipelines
     assert "| gray | 3 |" in (out / "ocr_eval.md").read_text()
+
+
+@needs_tesseract
+def test_extract_command_reads_total_and_date(tmp_path, capsys):
+    import json
+
+    import cv2
+
+    from .drawing import render_lines
+
+    image = tmp_path / "receipt.png"
+    cv2.imwrite(str(image), render_lines(["FOLIO STORE", "DATE 19/10/2026", "TOTAL 12.25", "CASH 20.00",
+                                          "CHANGE 7.75"]))
+    assert main(["extract", str(image), "--json"]) == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["total"]["value"] == "12.25" and out["total"]["checked"] is True
+    assert out["date"] == {"value": "2026-10-19", "rule": "date after a label", "row": 2,
+                           "evidence": "DATE 19/10/2026", "checked": None}
+
+
+@needs_tesseract
+def test_eval_extract_command_writes_both_reports(fake_sroie, tmp_path):
+    out = tmp_path / "results"
+    code = main(["eval-extract", "--data", str(fake_sroie), "--splits", "dev", "--workers", "1",
+                 "--cache", str(tmp_path / "cache"), "--out", str(out)])
+    assert code == 0
+    rows = (out / "extract_eval.csv").read_text().count("\n")
+    assert rows == 1 + 2 * 2 * 2 * 2  # header + receipts x texts x methods x fields
+    report = (out / "extract_eval.md").read_text()
+    assert "| dev | OCR | rules | 2 of 2" in report and "| dev | reference | rules | 2 of 2" in report

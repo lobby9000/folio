@@ -1,18 +1,23 @@
-"""Command line: `folio ocr` for one image and `folio eval-ocr` for an experiment."""
+"""Command line: `folio ocr` and `folio extract` for one image, `folio eval-ocr` and
+`folio eval-extract` for the experiments on SROIE."""
 
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
 import cv2
 import pytesseract
 
+from . import evaluate_extract
+from .cache import DEFAULT_CACHE, ocr_receipts
 from .evaluate import compare, evaluate, render_markdown, summarize, write_csv
+from .extract import EXTRACTORS
 from .ocr import OcrConfig, run_ocr, tesseract_available
 from .preprocess import PIPELINES
-from .sroie import load_receipts
+from .sroie import SPLITS, load_receipts, load_split
 
 DEFAULT_CONFIG = ("gray", 3)  # what you get with no preprocessing and Tesseract's default layout mode
 
@@ -63,6 +68,65 @@ def _cmd_eval(args: argparse.Namespace) -> int:
     return 0
 
 
+_CHECK = {True: "matches cash minus change", False: "does not match cash minus change", None: ""}
+
+
+def _cmd_extract(args: argparse.Namespace) -> int:
+    img = cv2.imread(args.image)
+    if img is None:
+        print(f"Could not read the image: {args.image}", file=sys.stderr)
+        return 2
+    lines = run_ocr(PIPELINES[args.prep](img), OcrConfig(lang=args.lang, psm=args.psm)).text.splitlines()
+    found = {field: extract(lines) for field, extract in EXTRACTORS["rules"].items()}
+    if args.json:
+        print(json.dumps({
+            field: None if e is None else {"value": str(e.value), "rule": e.rule, "row": e.line + 1,
+                                           "evidence": e.evidence.strip(), "checked": e.checked}
+            for field, e in found.items()
+        }, indent=2, ensure_ascii=False))
+        return 0
+    for field, e in found.items():
+        if e is None:
+            print(f"{field:<6} not found")
+            continue
+        check = f"; {_CHECK[e.checked]}" if _CHECK[e.checked] else ""
+        print(f"{field:<6} {e.value}  ({e.rule}, row {e.line + 1}: {e.evidence.strip()!r}{check})")
+    return 0
+
+
+def _cmd_eval_extract(args: argparse.Namespace) -> int:
+    config = OcrConfig(lang=args.lang, psm=args.psm)
+    rows, sizes = [], {}
+    for split in args.splits:
+        receipts = load_split(Path(args.data), split)
+        if not receipts:
+            print(f"No receipts in the {split} split under {args.data}.", file=sys.stderr)
+            continue
+        print(f"{split}: {len(receipts)} receipts, OCR cached under {args.cache}...", file=sys.stderr)
+        ocr = ocr_receipts(receipts, args.prep, config, Path(args.cache), args.workers)
+        for r in receipts:
+            rows += evaluate_extract.score_receipt(split, r, "ocr", ocr[r.id].text.splitlines())
+            rows += evaluate_extract.score_receipt(split, r, "reference", r.reference_text.splitlines())
+        sizes[split] = len(receipts)
+    if not rows:
+        return 2
+    out = Path(args.out)
+    evaluate_extract.write_csv(rows, out / "extract_eval.csv")
+    header = (
+        f"Rules from `folio/extract.py`. They were written looking only at the `dev` split "
+        f"({sizes.get('dev', 0)} receipts, the stage 1 sample). The `test` split "
+        f"({sizes.get('test', 0)} other receipts, drawn with seed 1) was scored once the rules were frozen. "
+        f"OCR: `{args.prep}` preprocessing, page mode {args.psm}, "
+        f"Tesseract {pytesseract.get_tesseract_version()}. *Reference* runs the same rules on the dataset's "
+        "own transcription, to tell reading errors from rule errors. Values are compared after normalising, "
+        "so `RM 5.90` equals `5,90`. Receipts whose label is empty are left out of that field."
+    )
+    report = evaluate_extract.render_markdown(rows, header)
+    (out / "extract_eval.md").write_text(report, encoding="utf-8")
+    print(report)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="folio", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -85,6 +149,25 @@ def build_parser() -> argparse.ArgumentParser:
     p_eval.add_argument("--workers", type=int, default=2)
     p_eval.add_argument("--out", default="results")
     p_eval.set_defaults(func=_cmd_eval)
+
+    p_ext = sub.add_parser("extract", help="read one receipt and print its total and date")
+    p_ext.add_argument("image")
+    p_ext.add_argument("--prep", default="gray", choices=sorted(PIPELINES))
+    p_ext.add_argument("--psm", type=int, default=6)
+    p_ext.add_argument("--lang", default="eng")
+    p_ext.add_argument("--json", action="store_true", help="print JSON with the evidence for each field")
+    p_ext.set_defaults(func=_cmd_extract)
+
+    p_eext = sub.add_parser("eval-extract", help="score the total and date extractors on SROIE")
+    p_eext.add_argument("--data", default="data/sroie/data", help="folder with img/, box/ and key/")
+    p_eext.add_argument("--splits", nargs="+", default=list(SPLITS), choices=SPLITS)
+    p_eext.add_argument("--prep", default="gray", choices=sorted(PIPELINES))
+    p_eext.add_argument("--psm", type=int, default=6)
+    p_eext.add_argument("--lang", default="eng")
+    p_eext.add_argument("--cache", default=str(DEFAULT_CACHE), help="where OCR output is kept between runs")
+    p_eext.add_argument("--workers", type=int, default=2)
+    p_eext.add_argument("--out", default="results")
+    p_eext.set_defaults(func=_cmd_eval_extract)
     return parser
 
 

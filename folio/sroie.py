@@ -69,6 +69,18 @@ def receipt_ids(root: Path) -> list[str]:
     )
 
 
+def _load(root: Path, ids: list[str]) -> list[Receipt]:
+    return [
+        Receipt(
+            id=i,
+            image_path=root / "img" / f"{i}.jpg",
+            lines=tuple(parse_box_file(root / "box" / f"{i}.csv")),
+            fields=parse_key_file(root / "key" / f"{i}.json"),
+        )
+        for i in ids
+    ]
+
+
 def load_receipts(root: Path, limit: int | None = None, seed: int = 0) -> list[Receipt]:
     """Load receipts from a folder with `img`, `box` and `key` subfolders.
 
@@ -80,12 +92,28 @@ def load_receipts(root: Path, limit: int | None = None, seed: int = 0) -> list[R
     if limit is not None and limit < len(ids):
         rng = random.Random(seed)
         ids = sorted(rng.sample(ids, limit))
-    return [
-        Receipt(
-            id=i,
-            image_path=root / "img" / f"{i}.jpg",
-            lines=tuple(parse_box_file(root / "box" / f"{i}.csv")),
-            fields=parse_key_file(root / "key" / f"{i}.json"),
-        )
-        for i in ids
-    ]
+    return _load(root, ids)
+
+
+SPLITS = ("dev", "test")
+
+
+def split_ids(root: Path, dev_size: int = 100, test_size: int = 200) -> dict[str, list[str]]:
+    """Disjoint development and test sets.
+
+    `dev` is the same sample the OCR stage used (seed 0), and it is the only set
+    looked at while writing extraction rules. `test` is drawn from the remaining
+    receipts with seed 1 and is only used to report results, so the rules are never
+    tuned on the receipts they are scored on.
+    """
+    ids = receipt_ids(Path(root))
+    dev = sorted(random.Random(0).sample(ids, min(dev_size, len(ids))))
+    rest = [i for i in ids if i not in set(dev)]
+    test = sorted(random.Random(1).sample(rest, min(test_size, len(rest))))
+    return {"dev": dev, "test": test}
+
+
+def load_split(root: Path, split: str, dev_size: int = 100, test_size: int = 200) -> list[Receipt]:
+    if split not in SPLITS:
+        raise ValueError(f"split must be one of {SPLITS}, not {split!r}")
+    return _load(Path(root), split_ids(root, dev_size, test_size)[split])
