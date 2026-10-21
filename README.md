@@ -14,7 +14,7 @@ Turns scanned documents into structured, searchable fields: OCR, field extractio
 | 2. Extraction baseline | Rules for the total and the date, normalised amounts and dates, a cash check | Done |
 | 3. Learned and LLM extraction | A ranker learned from labelled receipts, and a cascade that asks an LLM reading the scan only when unsure | Done |
 | 4. Classification and clustering | Document type from OCR text, and receipt layouts grouped without labels | Done |
-| 5. Search | BM25 and embeddings fused with RRF, scored with Recall@k and MRR | Next |
+| 5. Search | BM25 and embeddings fused with RRF, scored with Recall@k and MRR | In progress |
 | 6. API and AWS | FastAPI in a Lambda container image behind API Gateway | Planned |
 
 <!-- results:start -->
@@ -114,6 +114,21 @@ The rules were written while looking only at 100 development receipts, then scor
 * **Upscaling 2x hurt and was more than twice as slow.** Deskewing barely changed anything, which suggests these receipts were scanned straight.
 <!-- results:end -->
 
+## How stage 5 works
+
+```
+question --> BM25 over English word stems          --+
+         --> TF-IDF of character n-grams           --+--> each ranks chunks, a page counts as its best chunk
+         --> jina-embeddings-v2-base-es vectors    --+                    |
+                                     Reciprocal Rank Fusion of the page rankings --> pages
+```
+
+* **Chunks** (`folio/search.py`): every page is cut at paragraph, line and word boundaries into chunks of up to 1,200 characters, as a RAG index would store them, and a last piece under 300 characters (a signature, a cc list) joins the chunk before it. The 3,482 pages give 5,561 chunks.
+* **Rankers**: BM25 written here (k1 = 1.5, b = 0.75) over Snowball English stems without stop words; cosine similarity over TF-IDF of character 3 to 5 grams inside words, which still matches a word OCR damaged; and cosine similarity between vectors from jina-embeddings-v2-base-es, a Spanish and English model run on the CPU through fastembed. The vectors come from `scripts/embed_search.py`, which downloads the 640 MB model and stores each vector under the SHA-1 of its text, so a rerun embeds only what changed.
+* **Fusion**: Reciprocal Rank Fusion adds 1/(k + position) for every list a page appears in, so scores on different scales are never compared. Four combinations of the rankers, each with k = 10, 30 and 60, are compared on the dev questions by MRR@10.
+* **Questions** (`benchmarks/search_questions.jsonl`): pages with at least 400 characters of OCR text were shuffled with a fixed seed and taken in order. For each page Claude (Anthropic's model) read the text and wrote one question under fixed rules, alternating two kinds: *exact* questions use an identifier from the page (a name, a number, a code), *described* ones use no names, numbers or codes. No question copies more than three consecutive words of its page beyond identifiers, which is checked automatically, and each has a Spanish translation. Pages that were unreadable, said nothing specific, or were templates that many pages repeat were skipped, and the file keeps every page looked at with the reason. The page answers its question. Among the three pages most similar to each source page (word TF-IDF), those at cosine 0.4 or more were read, and five of them, copies of the same document or equivalent forms, count as right answers too. The questions were split once, 50 for dev and 150 for test, half of each kind.
+* **Evaluation** (`folio/evaluate_search.py`): Recall@1, 5, 10 and 20 and MRR@10 per language and kind of question, Wilson intervals, exact McNemar tests between the fusion and each ranker alone, and how many questions each ranker finds that the other misses.
+
 ## How stage 4 works
 
 ```
@@ -195,6 +210,11 @@ bash scripts/get_tobacco_text.sh            # 3,482 OCR texts of Tobacco3482 int
 folio eval-classify                         # document types: cross-validation, one test run, results/classify_eval.md
 folio eval-cluster                          # receipt layouts without labels, results/cluster_eval.md
 
+folio export-search                         # chunks and queries to embed, into data/search
+pip install fastembed==0.9.0 && python scripts/embed_search.py data/search   # downloads 640 MB once, about an hour on a laptop CPU
+folio eval-search                           # dev questions only: compares the fusions
+folio eval-search --split all               # the one test run, results/search_eval.md
+
 # The LLM stage. With a local model, reading the OCR text (nothing leaves the machine):
 ollama pull qwen2.5:3b
 folio eval-llm --backend ollama --model qwen2.5:3b          # asks only about the receipts the cascade routes
@@ -228,16 +248,19 @@ folio/
   evaluate_classify.py  model choice by cross-validation, the test run and the report
   cluster.py      receipt representations, layout clustering and merchant keys
   evaluate_cluster.py  layout groups scored against merchants, known and new layouts, grouped folds
+  search.py       chunks, BM25, character n-grams, embeddings and Reciprocal Rank Fusion
+  evaluate_search.py  the questions, Recall@k and MRR, the fusion chosen on dev and the test run
   cli.py          folio ocr, extract and one eval-* command per experiment
 models/           the fitted ranker as JSON
+benchmarks/       the stage 5 questions, one line per page looked at
 tests/            unit tests and end-to-end checks with drawn images, no dataset files
-scripts/          dataset downloads and the guard's design data
+scripts/          dataset downloads, the guard's design data and the embedding script
 results/          experiment outputs
 ```
 
 ## Data
 
-[QS-OCR-Small](https://github.com/Quicksign/ocrized-text-dataset) (Quicksign, 2019) is the Tesseract 4 text of the Tobacco3482 dataset (Kumar et al., 2013): 3,482 scanned pages from the Truth Tobacco Industry Documents archive in ten classes (advertisement, email, form, letter, memo, news, note, report, resume and scientific paper). Stage 4 classifies document types on it, because SROIE holds only receipts. The download script pins the archive's checksum. The dataset has no licence of its own, so it is used for research and is not stored here. It is split once, stratified, into 2,786 training and 696 test documents.
+[QS-OCR-Small](https://github.com/Quicksign/ocrized-text-dataset) (Quicksign, 2019) is the Tesseract 4 text of the Tobacco3482 dataset (Kumar et al., 2013): 3,482 scanned pages from the Truth Tobacco Industry Documents archive in ten classes (advertisement, email, form, letter, memo, news, note, report, resume and scientific paper). Stage 4 classifies document types on it, because SROIE holds only receipts, and stage 5 searches its pages. The download script pins the archive's checksum. The dataset has no licence of its own, so it is used for research and is not stored here. It is split once, stratified, into 2,786 training and 696 test documents.
 
 [SROIE](https://rrc.cvc.uab.es/?ch=13) (ICDAR 2019) has scanned receipts from Malaysia with line-level text boxes and four key fields: company, date, address and total. The download script uses the [zzzDavid/ICDAR-2019-SROIE](https://github.com/zzzDavid/ICDAR-2019-SROIE) mirror. The data is for research use and is not stored in this repository. The 626 receipts are split once: 100 for development (the stage 1 sample), 200 held out for testing, and the other 326 for training. The 326 stayed unused through stage 2 and became the ranker's training data in stage 3, so later changes are judged by cross-validation on them and by the one test run each method gets. Its transcriptions have some noise of their own (a box file may say `SDN BND` where the key file says `SDN BHD`), so even perfect OCR would not reach zero error.
 

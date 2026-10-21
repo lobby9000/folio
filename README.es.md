@@ -12,7 +12,7 @@ Convierte documentos escaneados en campos estructurados y buscables: OCR, extrac
 | 2. Línea base de extracción | Reglas para el total y la fecha, montos y fechas normalizados, verificación con el efectivo | Terminada |
 | 3. Extracción aprendida y con LLM | Un ranker aprendido de recibos etiquetados, y una cascada que solo le pregunta a un LLM que lee el escaneo cuando hay duda | Terminada |
 | 4. Clasificación y agrupamiento | Tipo de documento a partir del texto del OCR, y formatos de recibo agrupados sin etiquetas | Terminada |
-| 5. Búsqueda | BM25 y embeddings fusionados con RRF, medidos con Recall@k y MRR | Siguiente |
+| 5. Búsqueda | BM25 y embeddings fusionados con RRF, medidos con Recall@k y MRR | En curso |
 | 6. API y AWS | FastAPI en una imagen de contenedor para Lambda detrás de API Gateway | Planeada |
 
 <!-- results:start -->
@@ -112,6 +112,21 @@ Las reglas se escribieron viendo solo 100 recibos de desarrollo y después se mi
 * **Ampliar al doble empeoró y tardó más del doble.** Enderezar casi no cambió nada, lo que sugiere que estos recibos se escanearon derechos.
 <!-- results:end -->
 
+## Cómo funciona la etapa 5
+
+```
+pregunta --> BM25 sobre raíces de palabras en inglés  --+
+         --> TF-IDF de n-gramas de caracteres         --+--> cada uno ordena fragmentos, una página vale lo que su mejor fragmento
+         --> vectores de jina-embeddings-v2-base-es   --+                    |
+                                   Reciprocal Rank Fusion de los órdenes de páginas --> páginas
+```
+
+* **Fragmentos** (`folio/search.py`): cada página se corta en párrafos, renglones y palabras en fragmentos de hasta 1,200 caracteres, como los guardaría un índice de RAG, y un último pedazo de menos de 300 caracteres (una firma, una lista de copias) se une al fragmento anterior. Las 3,482 páginas dan 5,561 fragmentos.
+* **Buscadores**: BM25 escrito aquí (k1 = 1.5, b = 0.75) sobre raíces de Snowball en inglés sin palabras vacías; similitud coseno sobre TF-IDF de n-gramas de 3 a 5 caracteres dentro de palabras, que todavía empata una palabra que el OCR dañó; y similitud coseno entre vectores de jina-embeddings-v2-base-es, un modelo de español e inglés que corre en el CPU con fastembed. Los vectores salen de `scripts/embed_search.py`, que baja el modelo de 640 MB y guarda cada vector bajo el SHA-1 de su texto, así que al volver a correrlo solo calcula lo que cambió.
+* **Fusión**: Reciprocal Rank Fusion suma 1/(k + posición) por cada lista en la que aparece una página, así nunca se comparan puntajes en escalas distintas. Cuatro combinaciones de buscadores, cada una con k = 10, 30 y 60, se comparan en las preguntas de desarrollo por MRR@10.
+* **Preguntas** (`benchmarks/search_questions.jsonl`): las páginas con al menos 400 caracteres de OCR se revolvieron con una semilla fija y se tomaron en ese orden. Para cada página, Claude (el modelo de Anthropic) leyó el texto y escribió una pregunta con reglas fijas, alternando dos tipos: las *exactas* usan un identificador de la página (un nombre, un número, un código) y las *descritas* no usan nombres, números ni códigos. Ninguna pregunta copia más de tres palabras seguidas de su página fuera de los identificadores, lo que se verifica automáticamente, y cada una tiene traducción al español. Se saltaron las páginas ilegibles, las que no decían nada específico y las plantillas que muchas páginas repiten, y el archivo guarda cada página revisada con el motivo. La página responde su pregunta. De las tres páginas más parecidas a cada página fuente (TF-IDF de palabras), se leyeron las que tienen coseno de 0.4 o más, y cinco de ellas, copias del mismo documento o formularios equivalentes, también cuentan como respuesta correcta. Las preguntas se dividieron una sola vez, 50 de desarrollo y 150 de prueba, la mitad de cada tipo.
+* **Evaluación** (`folio/evaluate_search.py`): Recall@1, 5, 10 y 20 y MRR@10 por idioma y por tipo de pregunta, intervalos de Wilson, pruebas exactas de McNemar entre la fusión y cada buscador solo, y cuántas preguntas encuentra cada buscador que el otro no.
+
 ## Cómo funciona la etapa 4
 
 ```
@@ -187,6 +202,11 @@ bash scripts/get_tobacco_text.sh            # 3,482 textos de OCR de Tobacco3482
 folio eval-classify                         # tipos de documento: validación cruzada, una corrida de prueba, results/classify_eval.md
 folio eval-cluster                          # formatos de recibo sin etiquetas, results/cluster_eval.md
 
+folio export-search                         # fragmentos y preguntas para el modelo de embeddings, en data/search
+pip install fastembed==0.9.0 && python scripts/embed_search.py data/search   # baja 640 MB una vez, como una hora en el CPU de una laptop
+folio eval-search                           # solo preguntas de desarrollo: compara las fusiones
+folio eval-search --split all               # la única corrida de prueba, results/search_eval.md
+
 # La etapa con LLM. Con un modelo local que lee el texto del OCR (nada sale de tu máquina):
 ollama pull qwen2.5:3b
 folio eval-llm --backend ollama --model qwen2.5:3b          # solo pregunta por los recibos que manda la cascada
@@ -200,7 +220,7 @@ folio eval-classify --llm anthropic        # también le pregunta a Haiku por lo
 
 ## Datos
 
-[QS-OCR-Small](https://github.com/Quicksign/ocrized-text-dataset) (Quicksign, 2019) es el texto de Tesseract 4 del dataset Tobacco3482 (Kumar et al., 2013): 3,482 páginas escaneadas del archivo Truth Tobacco Industry Documents en diez clases (anuncio, correo, formulario, carta, memorándum, noticia, nota, reporte, currículum y artículo científico). La etapa 4 clasifica tipos de documento con él, porque SROIE solo tiene recibos. El script de descarga verifica la suma de comprobación del archivo. El dataset no tiene licencia propia, así que se usa para investigación y no se guarda aquí. Se divide una sola vez, estratificado, en 2,786 documentos de entrenamiento y 696 de prueba.
+[QS-OCR-Small](https://github.com/Quicksign/ocrized-text-dataset) (Quicksign, 2019) es el texto de Tesseract 4 del dataset Tobacco3482 (Kumar et al., 2013): 3,482 páginas escaneadas del archivo Truth Tobacco Industry Documents en diez clases (anuncio, correo, formulario, carta, memorándum, noticia, nota, reporte, currículum y artículo científico). La etapa 4 clasifica tipos de documento con él, porque SROIE solo tiene recibos, y la etapa 5 busca en sus páginas. El script de descarga verifica la suma de comprobación del archivo. El dataset no tiene licencia propia, así que se usa para investigación y no se guarda aquí. Se divide una sola vez, estratificado, en 2,786 documentos de entrenamiento y 696 de prueba.
 
 [SROIE](https://rrc.cvc.uab.es/?ch=13) (ICDAR 2019) tiene recibos escaneados de Malasia con cajas de texto por renglón y cuatro campos clave: empresa, fecha, dirección y total. El script de descarga usa el espejo [zzzDavid/ICDAR-2019-SROIE](https://github.com/zzzDavid/ICDAR-2019-SROIE). Los datos son para uso de investigación y no se guardan en este repositorio. Los 626 recibos se dividen una sola vez: 100 para desarrollo (la muestra de la etapa 1), 200 reservados para prueba y los otros 326 para entrenamiento. Esos 326 no se usaron en la etapa 2 y en la etapa 3 se volvieron los datos de entrenamiento del ranker, así que los cambios futuros se juzgan con validación cruzada sobre ellos y con la única corrida de prueba que recibe cada método. Sus transcripciones tienen algo de ruido propio, así que ni un OCR perfecto llegaría a error cero.
 
