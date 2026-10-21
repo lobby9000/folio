@@ -12,7 +12,14 @@ from pathlib import Path
 import cv2
 import pytesseract
 
-from . import evaluate_classify, evaluate_cluster, evaluate_extract, evaluate_learned, evaluate_llm
+from . import (
+    evaluate_classify,
+    evaluate_cluster,
+    evaluate_extract,
+    evaluate_learned,
+    evaluate_llm,
+    evaluate_search,
+)
 from .cache import DEFAULT_CACHE, ocr_receipts
 from .classify import load_docs, split_docs
 from .evaluate import compare, evaluate, render_markdown, summarize, write_csv
@@ -30,6 +37,7 @@ from .llm import (
 )
 from .ocr import OcrConfig, run_ocr, tesseract_available
 from .preprocess import PIPELINES
+from .search import load_vectors, make_chunks
 from .sroie import SPLITS, load_receipts, load_split
 
 DEFAULT_CONFIG = ("gray", 3)  # what you get with no preprocessing and Tesseract's default layout mode
@@ -332,6 +340,54 @@ def _cmd_eval_cluster(args: argparse.Namespace) -> int:
     return 0
 
 
+def _search_inputs(args: argparse.Namespace):
+    docs = load_docs(Path(args.data))
+    if not docs:
+        print(f"No documents under {args.data}. Run: bash scripts/get_tobacco_text.sh", file=sys.stderr)
+        return None
+    questions, skipped = evaluate_search.load_questions(Path(args.questions))
+    return docs, make_chunks(docs), questions, skipped
+
+
+def _cmd_export_search(args: argparse.Namespace) -> int:
+    inputs = _search_inputs(args)
+    if inputs is None:
+        return 2
+    _, chunks, questions, _ = inputs
+    paths = evaluate_search.export_inputs(chunks, questions, Path(args.out))
+    print(f"Wrote {paths[0]} ({len(chunks)} chunks) and {paths[1]} ({2 * len(questions)} queries). "
+          f"Next: python scripts/embed_search.py {args.out}")
+    return 0
+
+
+def _cmd_eval_search(args: argparse.Namespace) -> int:
+    inputs = _search_inputs(args)
+    if inputs is None:
+        return 2
+    docs, chunks, questions, skipped = inputs
+    vectors = None
+    if Path(args.embeddings).exists():
+        vectors = load_vectors(Path(args.embeddings))
+    else:
+        print(f"No {args.embeddings}: scoring without embeddings.", file=sys.stderr)
+    splits = ("dev",) if args.split == "dev" else ("dev", "test")
+    report = evaluate_search.run(questions, chunks, {d.id: d.text for d in docs}, vectors, splits, skipped,
+                                 log=lambda message: print(message, file=sys.stderr))
+    out = Path(args.out)
+    tag = "search_eval" if args.split == "all" else "search_eval_dev"
+    evaluate_search.write_csv(report.rows, out / f"{tag}.csv")
+    header = (
+        f"Tesseract text of the Tobacco3482 pages (QS-OCR-Small, `{args.data}`), questions from "
+        f"`{args.questions}`. Embeddings: jina-embeddings-v2-base-es through fastembed "
+        f"(`{args.embeddings}`, made by `scripts/embed_search.py`). BM25 uses k1 = 1.5, b = 0.75 over "
+        "English Snowball stems; character n-grams are TF-IDF over 3 to 5 characters inside words."
+    )
+    md = evaluate_search.render_markdown(report, header)
+    (out / f"{tag}.md").write_text(md, encoding="utf-8")
+    print(md)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="folio", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -448,6 +504,22 @@ def build_parser() -> argparse.ArgumentParser:
     p_clu.add_argument("--repeats", type=int, default=3)
     p_clu.add_argument("--out", default="results")
     p_clu.set_defaults(func=_cmd_eval_cluster)
+
+    for name, helptext, func in (
+        ("export-search", "write the chunks and queries to embed for stage 5", _cmd_export_search),
+        ("eval-search", "score BM25, character n-grams, embeddings and their fusion", _cmd_eval_search),
+    ):
+        p_s = sub.add_parser(name, help=helptext)
+        p_s.add_argument("--data", default="data/qs-ocr-small", help="one folder of .txt files per class")
+        p_s.add_argument("--questions", default="benchmarks/search_questions.jsonl")
+        if name == "export-search":
+            p_s.add_argument("--out", default="data/search")
+        else:
+            p_s.add_argument("--embeddings", default="data/search/embeddings.npz")
+            p_s.add_argument("--split", choices=["dev", "all"], default="dev",
+                             help="dev: choose the fusion and stop; all: also score the test questions")
+            p_s.add_argument("--out", default="results")
+        p_s.set_defaults(func=func, needs_tesseract=False)
     return parser
 
 

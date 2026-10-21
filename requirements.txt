@@ -3,3 +3,4 @@ opencv-python-headless>=4.9
 pytesseract>=0.3.10
 rapidfuzz>=3.6
 scikit-learn>=1.5
+snowballstemmer>=2.2
