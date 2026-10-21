@@ -1,0 +1,1501 @@
+question,lang,kind,split,method,rank
+q004,en,described,dev,BM25,2
+q004,en,described,dev,character n-grams,29
+q004,en,described,dev,embeddings,1
+q004,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q004,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q004,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q004,en,described,dev,"char + embeddings (RRF, k=10)",2
+q004,en,described,dev,"char + embeddings (RRF, k=30)",3
+q004,en,described,dev,"char + embeddings (RRF, k=60)",3
+q004,en,described,dev,"BM25 + char (RRF, k=10)",7
+q004,en,described,dev,"BM25 + char (RRF, k=30)",8
+q004,en,described,dev,"BM25 + char (RRF, k=60)",11
+q004,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q004,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q004,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q004,es,described,dev,BM25,
+q004,es,described,dev,character n-grams,7
+q004,es,described,dev,embeddings,1
+q004,es,described,dev,"BM25 + embeddings (RRF, k=10)",2
+q004,es,described,dev,"BM25 + embeddings (RRF, k=30)",2
+q004,es,described,dev,"BM25 + embeddings (RRF, k=60)",5
+q004,es,described,dev,"char + embeddings (RRF, k=10)",1
+q004,es,described,dev,"char + embeddings (RRF, k=30)",1
+q004,es,described,dev,"char + embeddings (RRF, k=60)",1
+q004,es,described,dev,"BM25 + char (RRF, k=10)",14
+q004,es,described,dev,"BM25 + char (RRF, k=30)",19
+q004,es,described,dev,"BM25 + char (RRF, k=60)",20
+q004,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",3
+q004,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",3
+q004,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",3
+q011,en,exact,dev,BM25,1
+q011,en,exact,dev,character n-grams,1
+q011,en,exact,dev,embeddings,1
+q011,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q011,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q011,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q011,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q011,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q011,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q011,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q011,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q011,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q011,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q011,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q011,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q011,es,exact,dev,BM25,1
+q011,es,exact,dev,character n-grams,1
+q011,es,exact,dev,embeddings,1
+q011,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q011,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q011,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q011,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q011,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q011,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q011,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q011,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q011,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q011,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q011,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q011,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q014,en,described,dev,BM25,1
+q014,en,described,dev,character n-grams,8
+q014,en,described,dev,embeddings,1
+q014,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q014,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q014,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q014,en,described,dev,"char + embeddings (RRF, k=10)",1
+q014,en,described,dev,"char + embeddings (RRF, k=30)",1
+q014,en,described,dev,"char + embeddings (RRF, k=60)",1
+q014,en,described,dev,"BM25 + char (RRF, k=10)",4
+q014,en,described,dev,"BM25 + char (RRF, k=30)",4
+q014,en,described,dev,"BM25 + char (RRF, k=60)",4
+q014,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q014,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q014,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q014,es,described,dev,BM25,
+q014,es,described,dev,character n-grams,42
+q014,es,described,dev,embeddings,6
+q014,es,described,dev,"BM25 + embeddings (RRF, k=10)",14
+q014,es,described,dev,"BM25 + embeddings (RRF, k=30)",15
+q014,es,described,dev,"BM25 + embeddings (RRF, k=60)",15
+q014,es,described,dev,"char + embeddings (RRF, k=10)",7
+q014,es,described,dev,"char + embeddings (RRF, k=30)",3
+q014,es,described,dev,"char + embeddings (RRF, k=60)",3
+q014,es,described,dev,"BM25 + char (RRF, k=10)",79
+q014,es,described,dev,"BM25 + char (RRF, k=30)",79
+q014,es,described,dev,"BM25 + char (RRF, k=60)",79
+q014,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",12
+q014,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",11
+q014,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",11
+q021,en,exact,dev,BM25,1
+q021,en,exact,dev,character n-grams,1
+q021,en,exact,dev,embeddings,1
+q021,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q021,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q021,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q021,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q021,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q021,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q021,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q021,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q021,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q021,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q021,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q021,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q021,es,exact,dev,BM25,13
+q021,es,exact,dev,character n-grams,1
+q021,es,exact,dev,embeddings,1
+q021,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q021,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q021,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q021,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q021,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q021,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q021,es,exact,dev,"BM25 + char (RRF, k=10)",4
+q021,es,exact,dev,"BM25 + char (RRF, k=30)",4
+q021,es,exact,dev,"BM25 + char (RRF, k=60)",4
+q021,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q021,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q021,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q023,en,exact,dev,BM25,1
+q023,en,exact,dev,character n-grams,1
+q023,en,exact,dev,embeddings,1
+q023,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q023,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q023,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q023,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q023,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q023,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q023,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q023,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q023,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q023,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q023,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q023,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q023,es,exact,dev,BM25,2
+q023,es,exact,dev,character n-grams,2
+q023,es,exact,dev,embeddings,1
+q023,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q023,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q023,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q023,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q023,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q023,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q023,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q023,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q023,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q023,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q023,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q023,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q024,en,described,dev,BM25,25
+q024,en,described,dev,character n-grams,78
+q024,en,described,dev,embeddings,1
+q024,en,described,dev,"BM25 + embeddings (RRF, k=10)",2
+q024,en,described,dev,"BM25 + embeddings (RRF, k=30)",4
+q024,en,described,dev,"BM25 + embeddings (RRF, k=60)",4
+q024,en,described,dev,"char + embeddings (RRF, k=10)",2
+q024,en,described,dev,"char + embeddings (RRF, k=30)",3
+q024,en,described,dev,"char + embeddings (RRF, k=60)",5
+q024,en,described,dev,"BM25 + char (RRF, k=10)",40
+q024,en,described,dev,"BM25 + char (RRF, k=30)",38
+q024,en,described,dev,"BM25 + char (RRF, k=60)",37
+q024,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",5
+q024,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",7
+q024,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",7
+q024,es,described,dev,BM25,
+q024,es,described,dev,character n-grams,
+q024,es,described,dev,embeddings,1
+q024,es,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q024,es,described,dev,"BM25 + embeddings (RRF, k=30)",3
+q024,es,described,dev,"BM25 + embeddings (RRF, k=60)",3
+q024,es,described,dev,"char + embeddings (RRF, k=10)",1
+q024,es,described,dev,"char + embeddings (RRF, k=30)",1
+q024,es,described,dev,"char + embeddings (RRF, k=60)",2
+q024,es,described,dev,"BM25 + char (RRF, k=10)",
+q024,es,described,dev,"BM25 + char (RRF, k=30)",
+q024,es,described,dev,"BM25 + char (RRF, k=60)",
+q024,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",7
+q024,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",12
+q024,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",17
+q028,en,described,dev,BM25,1
+q028,en,described,dev,character n-grams,1
+q028,en,described,dev,embeddings,2
+q028,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q028,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q028,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q028,en,described,dev,"char + embeddings (RRF, k=10)",1
+q028,en,described,dev,"char + embeddings (RRF, k=30)",1
+q028,en,described,dev,"char + embeddings (RRF, k=60)",1
+q028,en,described,dev,"BM25 + char (RRF, k=10)",1
+q028,en,described,dev,"BM25 + char (RRF, k=30)",1
+q028,en,described,dev,"BM25 + char (RRF, k=60)",1
+q028,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q028,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q028,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q028,es,described,dev,BM25,17
+q028,es,described,dev,character n-grams,
+q028,es,described,dev,embeddings,1
+q028,es,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q028,es,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q028,es,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q028,es,described,dev,"char + embeddings (RRF, k=10)",1
+q028,es,described,dev,"char + embeddings (RRF, k=30)",1
+q028,es,described,dev,"char + embeddings (RRF, k=60)",7
+q028,es,described,dev,"BM25 + char (RRF, k=10)",34
+q028,es,described,dev,"BM25 + char (RRF, k=30)",38
+q028,es,described,dev,"BM25 + char (RRF, k=60)",40
+q028,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",4
+q028,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",4
+q028,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",7
+q039,en,exact,dev,BM25,1
+q039,en,exact,dev,character n-grams,1
+q039,en,exact,dev,embeddings,1
+q039,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q039,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q039,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q039,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q039,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q039,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q039,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q039,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q039,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q039,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q039,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q039,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q039,es,exact,dev,BM25,4
+q039,es,exact,dev,character n-grams,1
+q039,es,exact,dev,embeddings,1
+q039,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q039,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q039,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q039,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q039,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q039,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q039,es,exact,dev,"BM25 + char (RRF, k=10)",3
+q039,es,exact,dev,"BM25 + char (RRF, k=30)",3
+q039,es,exact,dev,"BM25 + char (RRF, k=60)",3
+q039,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q039,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q039,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q044,en,described,dev,BM25,1
+q044,en,described,dev,character n-grams,1
+q044,en,described,dev,embeddings,1
+q044,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q044,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q044,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q044,en,described,dev,"char + embeddings (RRF, k=10)",1
+q044,en,described,dev,"char + embeddings (RRF, k=30)",1
+q044,en,described,dev,"char + embeddings (RRF, k=60)",1
+q044,en,described,dev,"BM25 + char (RRF, k=10)",1
+q044,en,described,dev,"BM25 + char (RRF, k=30)",1
+q044,en,described,dev,"BM25 + char (RRF, k=60)",1
+q044,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q044,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q044,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q044,es,described,dev,BM25,25
+q044,es,described,dev,character n-grams,4
+q044,es,described,dev,embeddings,1
+q044,es,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q044,es,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q044,es,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q044,es,described,dev,"char + embeddings (RRF, k=10)",1
+q044,es,described,dev,"char + embeddings (RRF, k=30)",1
+q044,es,described,dev,"char + embeddings (RRF, k=60)",1
+q044,es,described,dev,"BM25 + char (RRF, k=10)",9
+q044,es,described,dev,"BM25 + char (RRF, k=30)",9
+q044,es,described,dev,"BM25 + char (RRF, k=60)",9
+q044,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q044,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q044,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q047,en,exact,dev,BM25,1
+q047,en,exact,dev,character n-grams,1
+q047,en,exact,dev,embeddings,1
+q047,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q047,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q047,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q047,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q047,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q047,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q047,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q047,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q047,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q047,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q047,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q047,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q047,es,exact,dev,BM25,1
+q047,es,exact,dev,character n-grams,1
+q047,es,exact,dev,embeddings,1
+q047,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q047,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q047,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q047,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q047,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q047,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q047,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q047,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q047,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q047,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q047,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q047,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q050,en,described,dev,BM25,41
+q050,en,described,dev,character n-grams,40
+q050,en,described,dev,embeddings,28
+q050,en,described,dev,"BM25 + embeddings (RRF, k=10)",35
+q050,en,described,dev,"BM25 + embeddings (RRF, k=30)",19
+q050,en,described,dev,"BM25 + embeddings (RRF, k=60)",12
+q050,en,described,dev,"char + embeddings (RRF, k=10)",34
+q050,en,described,dev,"char + embeddings (RRF, k=30)",23
+q050,en,described,dev,"char + embeddings (RRF, k=60)",21
+q050,en,described,dev,"BM25 + char (RRF, k=10)",39
+q050,en,described,dev,"BM25 + char (RRF, k=30)",37
+q050,en,described,dev,"BM25 + char (RRF, k=60)",34
+q050,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",35
+q050,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",19
+q050,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",12
+q050,es,described,dev,BM25,
+q050,es,described,dev,character n-grams,
+q050,es,described,dev,embeddings,61
+q050,es,described,dev,"BM25 + embeddings (RRF, k=10)",
+q050,es,described,dev,"BM25 + embeddings (RRF, k=30)",
+q050,es,described,dev,"BM25 + embeddings (RRF, k=60)",
+q050,es,described,dev,"char + embeddings (RRF, k=10)",
+q050,es,described,dev,"char + embeddings (RRF, k=30)",
+q050,es,described,dev,"char + embeddings (RRF, k=60)",
+q050,es,described,dev,"BM25 + char (RRF, k=10)",
+q050,es,described,dev,"BM25 + char (RRF, k=30)",
+q050,es,described,dev,"BM25 + char (RRF, k=60)",
+q050,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",
+q050,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",
+q050,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",
+q051,en,exact,dev,BM25,5
+q051,en,exact,dev,character n-grams,2
+q051,en,exact,dev,embeddings,27
+q051,en,exact,dev,"BM25 + embeddings (RRF, k=10)",9
+q051,en,exact,dev,"BM25 + embeddings (RRF, k=30)",9
+q051,en,exact,dev,"BM25 + embeddings (RRF, k=60)",9
+q051,en,exact,dev,"char + embeddings (RRF, k=10)",3
+q051,en,exact,dev,"char + embeddings (RRF, k=30)",3
+q051,en,exact,dev,"char + embeddings (RRF, k=60)",3
+q051,en,exact,dev,"BM25 + char (RRF, k=10)",2
+q051,en,exact,dev,"BM25 + char (RRF, k=30)",2
+q051,en,exact,dev,"BM25 + char (RRF, k=60)",2
+q051,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",2
+q051,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",2
+q051,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",2
+q051,es,exact,dev,BM25,20
+q051,es,exact,dev,character n-grams,2
+q051,es,exact,dev,embeddings,11
+q051,es,exact,dev,"BM25 + embeddings (RRF, k=10)",6
+q051,es,exact,dev,"BM25 + embeddings (RRF, k=30)",2
+q051,es,exact,dev,"BM25 + embeddings (RRF, k=60)",2
+q051,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q051,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q051,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q051,es,exact,dev,"BM25 + char (RRF, k=10)",3
+q051,es,exact,dev,"BM25 + char (RRF, k=30)",3
+q051,es,exact,dev,"BM25 + char (RRF, k=60)",3
+q051,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",2
+q051,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q051,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q054,en,described,dev,BM25,1
+q054,en,described,dev,character n-grams,1
+q054,en,described,dev,embeddings,2
+q054,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q054,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q054,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q054,en,described,dev,"char + embeddings (RRF, k=10)",1
+q054,en,described,dev,"char + embeddings (RRF, k=30)",1
+q054,en,described,dev,"char + embeddings (RRF, k=60)",1
+q054,en,described,dev,"BM25 + char (RRF, k=10)",1
+q054,en,described,dev,"BM25 + char (RRF, k=30)",1
+q054,en,described,dev,"BM25 + char (RRF, k=60)",1
+q054,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q054,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q054,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q054,es,described,dev,BM25,
+q054,es,described,dev,character n-grams,81
+q054,es,described,dev,embeddings,1
+q054,es,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q054,es,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q054,es,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q054,es,described,dev,"char + embeddings (RRF, k=10)",1
+q054,es,described,dev,"char + embeddings (RRF, k=30)",1
+q054,es,described,dev,"char + embeddings (RRF, k=60)",1
+q054,es,described,dev,"BM25 + char (RRF, k=10)",
+q054,es,described,dev,"BM25 + char (RRF, k=30)",
+q054,es,described,dev,"BM25 + char (RRF, k=60)",
+q054,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",7
+q054,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",9
+q054,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",12
+q058,en,described,dev,BM25,34
+q058,en,described,dev,character n-grams,36
+q058,en,described,dev,embeddings,21
+q058,en,described,dev,"BM25 + embeddings (RRF, k=10)",23
+q058,en,described,dev,"BM25 + embeddings (RRF, k=30)",19
+q058,en,described,dev,"BM25 + embeddings (RRF, k=60)",16
+q058,en,described,dev,"char + embeddings (RRF, k=10)",23
+q058,en,described,dev,"char + embeddings (RRF, k=30)",15
+q058,en,described,dev,"char + embeddings (RRF, k=60)",12
+q058,en,described,dev,"BM25 + char (RRF, k=10)",33
+q058,en,described,dev,"BM25 + char (RRF, k=30)",32
+q058,en,described,dev,"BM25 + char (RRF, k=60)",30
+q058,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",24
+q058,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",15
+q058,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",14
+q058,es,described,dev,BM25,
+q058,es,described,dev,character n-grams,
+q058,es,described,dev,embeddings,84
+q058,es,described,dev,"BM25 + embeddings (RRF, k=10)",
+q058,es,described,dev,"BM25 + embeddings (RRF, k=30)",
+q058,es,described,dev,"BM25 + embeddings (RRF, k=60)",
+q058,es,described,dev,"char + embeddings (RRF, k=10)",
+q058,es,described,dev,"char + embeddings (RRF, k=30)",
+q058,es,described,dev,"char + embeddings (RRF, k=60)",
+q058,es,described,dev,"BM25 + char (RRF, k=10)",
+q058,es,described,dev,"BM25 + char (RRF, k=30)",
+q058,es,described,dev,"BM25 + char (RRF, k=60)",
+q058,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",
+q058,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",
+q058,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",
+q059,en,exact,dev,BM25,1
+q059,en,exact,dev,character n-grams,1
+q059,en,exact,dev,embeddings,1
+q059,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q059,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q059,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q059,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q059,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q059,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q059,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q059,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q059,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q059,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q059,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q059,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q059,es,exact,dev,BM25,1
+q059,es,exact,dev,character n-grams,1
+q059,es,exact,dev,embeddings,1
+q059,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q059,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q059,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q059,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q059,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q059,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q059,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q059,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q059,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q059,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q059,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q059,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q060,en,described,dev,BM25,2
+q060,en,described,dev,character n-grams,2
+q060,en,described,dev,embeddings,1
+q060,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q060,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q060,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q060,en,described,dev,"char + embeddings (RRF, k=10)",1
+q060,en,described,dev,"char + embeddings (RRF, k=30)",1
+q060,en,described,dev,"char + embeddings (RRF, k=60)",1
+q060,en,described,dev,"BM25 + char (RRF, k=10)",2
+q060,en,described,dev,"BM25 + char (RRF, k=30)",2
+q060,en,described,dev,"BM25 + char (RRF, k=60)",2
+q060,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q060,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q060,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q060,es,described,dev,BM25,
+q060,es,described,dev,character n-grams,
+q060,es,described,dev,embeddings,1
+q060,es,described,dev,"BM25 + embeddings (RRF, k=10)",2
+q060,es,described,dev,"BM25 + embeddings (RRF, k=30)",2
+q060,es,described,dev,"BM25 + embeddings (RRF, k=60)",3
+q060,es,described,dev,"char + embeddings (RRF, k=10)",2
+q060,es,described,dev,"char + embeddings (RRF, k=30)",3
+q060,es,described,dev,"char + embeddings (RRF, k=60)",4
+q060,es,described,dev,"BM25 + char (RRF, k=10)",
+q060,es,described,dev,"BM25 + char (RRF, k=30)",
+q060,es,described,dev,"BM25 + char (RRF, k=60)",
+q060,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",9
+q060,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",13
+q060,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",15
+q065,en,exact,dev,BM25,1
+q065,en,exact,dev,character n-grams,1
+q065,en,exact,dev,embeddings,1
+q065,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q065,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q065,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q065,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q065,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q065,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q065,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q065,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q065,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q065,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q065,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q065,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q065,es,exact,dev,BM25,3
+q065,es,exact,dev,character n-grams,1
+q065,es,exact,dev,embeddings,1
+q065,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q065,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q065,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q065,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q065,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q065,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q065,es,exact,dev,"BM25 + char (RRF, k=10)",2
+q065,es,exact,dev,"BM25 + char (RRF, k=30)",2
+q065,es,exact,dev,"BM25 + char (RRF, k=60)",2
+q065,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q065,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q065,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q077,en,exact,dev,BM25,1
+q077,en,exact,dev,character n-grams,1
+q077,en,exact,dev,embeddings,1
+q077,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q077,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q077,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q077,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q077,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q077,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q077,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q077,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q077,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q077,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q077,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q077,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q077,es,exact,dev,BM25,9
+q077,es,exact,dev,character n-grams,2
+q077,es,exact,dev,embeddings,1
+q077,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q077,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q077,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q077,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q077,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q077,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q077,es,exact,dev,"BM25 + char (RRF, k=10)",2
+q077,es,exact,dev,"BM25 + char (RRF, k=30)",2
+q077,es,exact,dev,"BM25 + char (RRF, k=60)",2
+q077,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q077,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q077,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q080,en,described,dev,BM25,1
+q080,en,described,dev,character n-grams,2
+q080,en,described,dev,embeddings,18
+q080,en,described,dev,"BM25 + embeddings (RRF, k=10)",4
+q080,en,described,dev,"BM25 + embeddings (RRF, k=30)",4
+q080,en,described,dev,"BM25 + embeddings (RRF, k=60)",4
+q080,en,described,dev,"char + embeddings (RRF, k=10)",2
+q080,en,described,dev,"char + embeddings (RRF, k=30)",2
+q080,en,described,dev,"char + embeddings (RRF, k=60)",2
+q080,en,described,dev,"BM25 + char (RRF, k=10)",1
+q080,en,described,dev,"BM25 + char (RRF, k=30)",1
+q080,en,described,dev,"BM25 + char (RRF, k=60)",1
+q080,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q080,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q080,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q080,es,described,dev,BM25,
+q080,es,described,dev,character n-grams,19
+q080,es,described,dev,embeddings,17
+q080,es,described,dev,"BM25 + embeddings (RRF, k=10)",33
+q080,es,described,dev,"BM25 + embeddings (RRF, k=30)",34
+q080,es,described,dev,"BM25 + embeddings (RRF, k=60)",35
+q080,es,described,dev,"char + embeddings (RRF, k=10)",7
+q080,es,described,dev,"char + embeddings (RRF, k=30)",1
+q080,es,described,dev,"char + embeddings (RRF, k=60)",1
+q080,es,described,dev,"BM25 + char (RRF, k=10)",36
+q080,es,described,dev,"BM25 + char (RRF, k=30)",39
+q080,es,described,dev,"BM25 + char (RRF, k=60)",42
+q080,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",11
+q080,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",5
+q080,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",5
+q081,en,exact,dev,BM25,1
+q081,en,exact,dev,character n-grams,1
+q081,en,exact,dev,embeddings,1
+q081,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q081,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q081,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q081,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q081,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q081,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q081,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q081,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q081,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q081,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q081,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q081,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q081,es,exact,dev,BM25,1
+q081,es,exact,dev,character n-grams,1
+q081,es,exact,dev,embeddings,1
+q081,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q081,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q081,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q081,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q081,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q081,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q081,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q081,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q081,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q081,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q081,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q081,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q084,en,described,dev,BM25,1
+q084,en,described,dev,character n-grams,1
+q084,en,described,dev,embeddings,1
+q084,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q084,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q084,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q084,en,described,dev,"char + embeddings (RRF, k=10)",1
+q084,en,described,dev,"char + embeddings (RRF, k=30)",1
+q084,en,described,dev,"char + embeddings (RRF, k=60)",1
+q084,en,described,dev,"BM25 + char (RRF, k=10)",1
+q084,en,described,dev,"BM25 + char (RRF, k=30)",1
+q084,en,described,dev,"BM25 + char (RRF, k=60)",1
+q084,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q084,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q084,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q084,es,described,dev,BM25,
+q084,es,described,dev,character n-grams,1
+q084,es,described,dev,embeddings,1
+q084,es,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q084,es,described,dev,"BM25 + embeddings (RRF, k=30)",4
+q084,es,described,dev,"BM25 + embeddings (RRF, k=60)",8
+q084,es,described,dev,"char + embeddings (RRF, k=10)",1
+q084,es,described,dev,"char + embeddings (RRF, k=30)",1
+q084,es,described,dev,"char + embeddings (RRF, k=60)",1
+q084,es,described,dev,"BM25 + char (RRF, k=10)",5
+q084,es,described,dev,"BM25 + char (RRF, k=30)",11
+q084,es,described,dev,"BM25 + char (RRF, k=60)",21
+q084,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q084,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q084,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",3
+q086,en,described,dev,BM25,1
+q086,en,described,dev,character n-grams,1
+q086,en,described,dev,embeddings,2
+q086,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q086,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q086,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q086,en,described,dev,"char + embeddings (RRF, k=10)",1
+q086,en,described,dev,"char + embeddings (RRF, k=30)",1
+q086,en,described,dev,"char + embeddings (RRF, k=60)",1
+q086,en,described,dev,"BM25 + char (RRF, k=10)",1
+q086,en,described,dev,"BM25 + char (RRF, k=30)",1
+q086,en,described,dev,"BM25 + char (RRF, k=60)",1
+q086,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q086,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q086,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q086,es,described,dev,BM25,14
+q086,es,described,dev,character n-grams,2
+q086,es,described,dev,embeddings,1
+q086,es,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q086,es,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q086,es,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q086,es,described,dev,"char + embeddings (RRF, k=10)",1
+q086,es,described,dev,"char + embeddings (RRF, k=30)",1
+q086,es,described,dev,"char + embeddings (RRF, k=60)",1
+q086,es,described,dev,"BM25 + char (RRF, k=10)",4
+q086,es,described,dev,"BM25 + char (RRF, k=30)",4
+q086,es,described,dev,"BM25 + char (RRF, k=60)",4
+q086,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q086,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q086,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q091,en,exact,dev,BM25,1
+q091,en,exact,dev,character n-grams,1
+q091,en,exact,dev,embeddings,1
+q091,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q091,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q091,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q091,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q091,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q091,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q091,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q091,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q091,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q091,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q091,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q091,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q091,es,exact,dev,BM25,1
+q091,es,exact,dev,character n-grams,1
+q091,es,exact,dev,embeddings,1
+q091,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q091,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q091,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q091,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q091,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q091,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q091,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q091,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q091,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q091,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q091,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q091,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q094,en,described,dev,BM25,3
+q094,en,described,dev,character n-grams,1
+q094,en,described,dev,embeddings,1
+q094,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q094,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q094,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q094,en,described,dev,"char + embeddings (RRF, k=10)",1
+q094,en,described,dev,"char + embeddings (RRF, k=30)",1
+q094,en,described,dev,"char + embeddings (RRF, k=60)",1
+q094,en,described,dev,"BM25 + char (RRF, k=10)",1
+q094,en,described,dev,"BM25 + char (RRF, k=30)",1
+q094,en,described,dev,"BM25 + char (RRF, k=60)",1
+q094,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q094,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q094,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q094,es,described,dev,BM25,
+q094,es,described,dev,character n-grams,
+q094,es,described,dev,embeddings,1
+q094,es,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q094,es,described,dev,"BM25 + embeddings (RRF, k=30)",3
+q094,es,described,dev,"BM25 + embeddings (RRF, k=60)",3
+q094,es,described,dev,"char + embeddings (RRF, k=10)",1
+q094,es,described,dev,"char + embeddings (RRF, k=30)",1
+q094,es,described,dev,"char + embeddings (RRF, k=60)",5
+q094,es,described,dev,"BM25 + char (RRF, k=10)",
+q094,es,described,dev,"BM25 + char (RRF, k=30)",
+q094,es,described,dev,"BM25 + char (RRF, k=60)",
+q094,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",7
+q094,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",20
+q094,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",28
+q098,en,described,dev,BM25,1
+q098,en,described,dev,character n-grams,7
+q098,en,described,dev,embeddings,1
+q098,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q098,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q098,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q098,en,described,dev,"char + embeddings (RRF, k=10)",2
+q098,en,described,dev,"char + embeddings (RRF, k=30)",2
+q098,en,described,dev,"char + embeddings (RRF, k=60)",2
+q098,en,described,dev,"BM25 + char (RRF, k=10)",2
+q098,en,described,dev,"BM25 + char (RRF, k=30)",2
+q098,en,described,dev,"BM25 + char (RRF, k=60)",2
+q098,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q098,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q098,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q098,es,described,dev,BM25,12
+q098,es,described,dev,character n-grams,66
+q098,es,described,dev,embeddings,1
+q098,es,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q098,es,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q098,es,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q098,es,described,dev,"char + embeddings (RRF, k=10)",3
+q098,es,described,dev,"char + embeddings (RRF, k=30)",8
+q098,es,described,dev,"char + embeddings (RRF, k=60)",10
+q098,es,described,dev,"BM25 + char (RRF, k=10)",19
+q098,es,described,dev,"BM25 + char (RRF, k=30)",12
+q098,es,described,dev,"BM25 + char (RRF, k=60)",11
+q098,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",3
+q098,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q098,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q099,en,exact,dev,BM25,1
+q099,en,exact,dev,character n-grams,1
+q099,en,exact,dev,embeddings,1
+q099,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q099,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q099,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q099,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q099,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q099,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q099,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q099,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q099,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q099,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q099,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q099,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q099,es,exact,dev,BM25,4
+q099,es,exact,dev,character n-grams,11
+q099,es,exact,dev,embeddings,3
+q099,es,exact,dev,"BM25 + embeddings (RRF, k=10)",2
+q099,es,exact,dev,"BM25 + embeddings (RRF, k=30)",2
+q099,es,exact,dev,"BM25 + embeddings (RRF, k=60)",2
+q099,es,exact,dev,"char + embeddings (RRF, k=10)",3
+q099,es,exact,dev,"char + embeddings (RRF, k=30)",4
+q099,es,exact,dev,"char + embeddings (RRF, k=60)",4
+q099,es,exact,dev,"BM25 + char (RRF, k=10)",6
+q099,es,exact,dev,"BM25 + char (RRF, k=30)",5
+q099,es,exact,dev,"BM25 + char (RRF, k=60)",5
+q099,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",3
+q099,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",3
+q099,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",3
+q103,en,exact,dev,BM25,1
+q103,en,exact,dev,character n-grams,1
+q103,en,exact,dev,embeddings,1
+q103,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q103,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q103,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q103,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q103,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q103,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q103,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q103,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q103,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q103,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q103,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q103,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q103,es,exact,dev,BM25,1
+q103,es,exact,dev,character n-grams,1
+q103,es,exact,dev,embeddings,1
+q103,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q103,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q103,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q103,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q103,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q103,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q103,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q103,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q103,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q103,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q103,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q103,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q106,en,described,dev,BM25,1
+q106,en,described,dev,character n-grams,1
+q106,en,described,dev,embeddings,1
+q106,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q106,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q106,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q106,en,described,dev,"char + embeddings (RRF, k=10)",1
+q106,en,described,dev,"char + embeddings (RRF, k=30)",1
+q106,en,described,dev,"char + embeddings (RRF, k=60)",1
+q106,en,described,dev,"BM25 + char (RRF, k=10)",1
+q106,en,described,dev,"BM25 + char (RRF, k=30)",1
+q106,en,described,dev,"BM25 + char (RRF, k=60)",1
+q106,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q106,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q106,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q106,es,described,dev,BM25,
+q106,es,described,dev,character n-grams,5
+q106,es,described,dev,embeddings,1
+q106,es,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q106,es,described,dev,"BM25 + embeddings (RRF, k=30)",3
+q106,es,described,dev,"BM25 + embeddings (RRF, k=60)",4
+q106,es,described,dev,"char + embeddings (RRF, k=10)",1
+q106,es,described,dev,"char + embeddings (RRF, k=30)",1
+q106,es,described,dev,"char + embeddings (RRF, k=60)",1
+q106,es,described,dev,"BM25 + char (RRF, k=10)",16
+q106,es,described,dev,"BM25 + char (RRF, k=30)",23
+q106,es,described,dev,"BM25 + char (RRF, k=60)",29
+q106,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",3
+q106,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",5
+q106,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",6
+q109,en,exact,dev,BM25,1
+q109,en,exact,dev,character n-grams,1
+q109,en,exact,dev,embeddings,1
+q109,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q109,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q109,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q109,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q109,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q109,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q109,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q109,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q109,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q109,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q109,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q109,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q109,es,exact,dev,BM25,4
+q109,es,exact,dev,character n-grams,1
+q109,es,exact,dev,embeddings,1
+q109,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q109,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q109,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q109,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q109,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q109,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q109,es,exact,dev,"BM25 + char (RRF, k=10)",2
+q109,es,exact,dev,"BM25 + char (RRF, k=30)",2
+q109,es,exact,dev,"BM25 + char (RRF, k=60)",2
+q109,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q109,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q109,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q110,en,described,dev,BM25,1
+q110,en,described,dev,character n-grams,1
+q110,en,described,dev,embeddings,15
+q110,en,described,dev,"BM25 + embeddings (RRF, k=10)",2
+q110,en,described,dev,"BM25 + embeddings (RRF, k=30)",2
+q110,en,described,dev,"BM25 + embeddings (RRF, k=60)",2
+q110,en,described,dev,"char + embeddings (RRF, k=10)",3
+q110,en,described,dev,"char + embeddings (RRF, k=30)",3
+q110,en,described,dev,"char + embeddings (RRF, k=60)",3
+q110,en,described,dev,"BM25 + char (RRF, k=10)",1
+q110,en,described,dev,"BM25 + char (RRF, k=30)",1
+q110,en,described,dev,"BM25 + char (RRF, k=60)",1
+q110,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",2
+q110,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",2
+q110,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",2
+q110,es,described,dev,BM25,
+q110,es,described,dev,character n-grams,
+q110,es,described,dev,embeddings,16
+q110,es,described,dev,"BM25 + embeddings (RRF, k=10)",36
+q110,es,described,dev,"BM25 + embeddings (RRF, k=30)",37
+q110,es,described,dev,"BM25 + embeddings (RRF, k=60)",39
+q110,es,described,dev,"char + embeddings (RRF, k=10)",33
+q110,es,described,dev,"char + embeddings (RRF, k=30)",36
+q110,es,described,dev,"char + embeddings (RRF, k=60)",36
+q110,es,described,dev,"BM25 + char (RRF, k=10)",
+q110,es,described,dev,"BM25 + char (RRF, k=30)",
+q110,es,described,dev,"BM25 + char (RRF, k=60)",
+q110,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",45
+q110,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",52
+q110,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",54
+q120,en,described,dev,BM25,1
+q120,en,described,dev,character n-grams,1
+q120,en,described,dev,embeddings,3
+q120,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q120,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q120,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q120,en,described,dev,"char + embeddings (RRF, k=10)",1
+q120,en,described,dev,"char + embeddings (RRF, k=30)",1
+q120,en,described,dev,"char + embeddings (RRF, k=60)",1
+q120,en,described,dev,"BM25 + char (RRF, k=10)",1
+q120,en,described,dev,"BM25 + char (RRF, k=30)",1
+q120,en,described,dev,"BM25 + char (RRF, k=60)",1
+q120,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q120,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q120,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q120,es,described,dev,BM25,
+q120,es,described,dev,character n-grams,3
+q120,es,described,dev,embeddings,2
+q120,es,described,dev,"BM25 + embeddings (RRF, k=10)",3
+q120,es,described,dev,"BM25 + embeddings (RRF, k=30)",3
+q120,es,described,dev,"BM25 + embeddings (RRF, k=60)",6
+q120,es,described,dev,"char + embeddings (RRF, k=10)",1
+q120,es,described,dev,"char + embeddings (RRF, k=30)",1
+q120,es,described,dev,"char + embeddings (RRF, k=60)",1
+q120,es,described,dev,"BM25 + char (RRF, k=10)",9
+q120,es,described,dev,"BM25 + char (RRF, k=30)",16
+q120,es,described,dev,"BM25 + char (RRF, k=60)",19
+q120,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",2
+q120,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",3
+q120,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",4
+q121,en,exact,dev,BM25,1
+q121,en,exact,dev,character n-grams,1
+q121,en,exact,dev,embeddings,
+q121,en,exact,dev,"BM25 + embeddings (RRF, k=10)",6
+q121,en,exact,dev,"BM25 + embeddings (RRF, k=30)",15
+q121,en,exact,dev,"BM25 + embeddings (RRF, k=60)",24
+q121,en,exact,dev,"char + embeddings (RRF, k=10)",6
+q121,en,exact,dev,"char + embeddings (RRF, k=30)",13
+q121,en,exact,dev,"char + embeddings (RRF, k=60)",19
+q121,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q121,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q121,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q121,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",3
+q121,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",7
+q121,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",11
+q121,es,exact,dev,BM25,4
+q121,es,exact,dev,character n-grams,1
+q121,es,exact,dev,embeddings,
+q121,es,exact,dev,"BM25 + embeddings (RRF, k=10)",8
+q121,es,exact,dev,"BM25 + embeddings (RRF, k=30)",9
+q121,es,exact,dev,"BM25 + embeddings (RRF, k=60)",13
+q121,es,exact,dev,"char + embeddings (RRF, k=10)",4
+q121,es,exact,dev,"char + embeddings (RRF, k=30)",6
+q121,es,exact,dev,"char + embeddings (RRF, k=60)",9
+q121,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q121,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q121,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q121,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q121,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q121,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q129,en,exact,dev,BM25,1
+q129,en,exact,dev,character n-grams,1
+q129,en,exact,dev,embeddings,1
+q129,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q129,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q129,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q129,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q129,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q129,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q129,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q129,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q129,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q129,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q129,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q129,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q129,es,exact,dev,BM25,1
+q129,es,exact,dev,character n-grams,1
+q129,es,exact,dev,embeddings,1
+q129,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q129,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q129,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q129,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q129,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q129,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q129,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q129,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q129,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q129,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q129,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q129,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q130,en,described,dev,BM25,1
+q130,en,described,dev,character n-grams,1
+q130,en,described,dev,embeddings,1
+q130,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q130,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q130,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q130,en,described,dev,"char + embeddings (RRF, k=10)",1
+q130,en,described,dev,"char + embeddings (RRF, k=30)",1
+q130,en,described,dev,"char + embeddings (RRF, k=60)",1
+q130,en,described,dev,"BM25 + char (RRF, k=10)",1
+q130,en,described,dev,"BM25 + char (RRF, k=30)",1
+q130,en,described,dev,"BM25 + char (RRF, k=60)",1
+q130,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q130,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q130,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q130,es,described,dev,BM25,
+q130,es,described,dev,character n-grams,7
+q130,es,described,dev,embeddings,1
+q130,es,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q130,es,described,dev,"BM25 + embeddings (RRF, k=30)",2
+q130,es,described,dev,"BM25 + embeddings (RRF, k=60)",3
+q130,es,described,dev,"char + embeddings (RRF, k=10)",1
+q130,es,described,dev,"char + embeddings (RRF, k=30)",1
+q130,es,described,dev,"char + embeddings (RRF, k=60)",1
+q130,es,described,dev,"BM25 + char (RRF, k=10)",14
+q130,es,described,dev,"BM25 + char (RRF, k=30)",17
+q130,es,described,dev,"BM25 + char (RRF, k=60)",24
+q130,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",3
+q130,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",3
+q130,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",3
+q131,en,exact,dev,BM25,1
+q131,en,exact,dev,character n-grams,1
+q131,en,exact,dev,embeddings,1
+q131,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q131,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q131,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q131,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q131,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q131,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q131,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q131,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q131,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q131,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q131,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q131,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q131,es,exact,dev,BM25,1
+q131,es,exact,dev,character n-grams,1
+q131,es,exact,dev,embeddings,1
+q131,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q131,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q131,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q131,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q131,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q131,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q131,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q131,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q131,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q131,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q131,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q131,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q137,en,exact,dev,BM25,1
+q137,en,exact,dev,character n-grams,1
+q137,en,exact,dev,embeddings,1
+q137,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q137,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q137,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q137,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q137,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q137,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q137,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q137,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q137,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q137,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q137,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q137,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q137,es,exact,dev,BM25,6
+q137,es,exact,dev,character n-grams,1
+q137,es,exact,dev,embeddings,1
+q137,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q137,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q137,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q137,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q137,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q137,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q137,es,exact,dev,"BM25 + char (RRF, k=10)",3
+q137,es,exact,dev,"BM25 + char (RRF, k=30)",3
+q137,es,exact,dev,"BM25 + char (RRF, k=60)",3
+q137,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q137,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q137,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q139,en,exact,dev,BM25,1
+q139,en,exact,dev,character n-grams,1
+q139,en,exact,dev,embeddings,27
+q139,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q139,en,exact,dev,"BM25 + embeddings (RRF, k=30)",4
+q139,en,exact,dev,"BM25 + embeddings (RRF, k=60)",4
+q139,en,exact,dev,"char + embeddings (RRF, k=10)",3
+q139,en,exact,dev,"char + embeddings (RRF, k=30)",4
+q139,en,exact,dev,"char + embeddings (RRF, k=60)",4
+q139,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q139,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q139,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q139,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q139,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",2
+q139,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",2
+q139,es,exact,dev,BM25,1
+q139,es,exact,dev,character n-grams,1
+q139,es,exact,dev,embeddings,41
+q139,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q139,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q139,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q139,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q139,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q139,es,exact,dev,"char + embeddings (RRF, k=60)",2
+q139,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q139,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q139,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q139,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q139,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q139,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q148,en,described,dev,BM25,1
+q148,en,described,dev,character n-grams,3
+q148,en,described,dev,embeddings,4
+q148,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q148,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q148,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q148,en,described,dev,"char + embeddings (RRF, k=10)",1
+q148,en,described,dev,"char + embeddings (RRF, k=30)",1
+q148,en,described,dev,"char + embeddings (RRF, k=60)",1
+q148,en,described,dev,"BM25 + char (RRF, k=10)",1
+q148,en,described,dev,"BM25 + char (RRF, k=30)",1
+q148,en,described,dev,"BM25 + char (RRF, k=60)",1
+q148,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q148,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q148,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q148,es,described,dev,BM25,
+q148,es,described,dev,character n-grams,
+q148,es,described,dev,embeddings,3
+q148,es,described,dev,"BM25 + embeddings (RRF, k=10)",5
+q148,es,described,dev,"BM25 + embeddings (RRF, k=30)",7
+q148,es,described,dev,"BM25 + embeddings (RRF, k=60)",8
+q148,es,described,dev,"char + embeddings (RRF, k=10)",7
+q148,es,described,dev,"char + embeddings (RRF, k=30)",9
+q148,es,described,dev,"char + embeddings (RRF, k=60)",11
+q148,es,described,dev,"BM25 + char (RRF, k=10)",
+q148,es,described,dev,"BM25 + char (RRF, k=30)",
+q148,es,described,dev,"BM25 + char (RRF, k=60)",
+q148,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",11
+q148,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",17
+q148,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",20
+q159,en,exact,dev,BM25,1
+q159,en,exact,dev,character n-grams,1
+q159,en,exact,dev,embeddings,1
+q159,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q159,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q159,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q159,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q159,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q159,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q159,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q159,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q159,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q159,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q159,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q159,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q159,es,exact,dev,BM25,6
+q159,es,exact,dev,character n-grams,1
+q159,es,exact,dev,embeddings,1
+q159,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q159,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q159,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q159,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q159,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q159,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q159,es,exact,dev,"BM25 + char (RRF, k=10)",2
+q159,es,exact,dev,"BM25 + char (RRF, k=30)",2
+q159,es,exact,dev,"BM25 + char (RRF, k=60)",2
+q159,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q159,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q159,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q166,en,described,dev,BM25,1
+q166,en,described,dev,character n-grams,1
+q166,en,described,dev,embeddings,2
+q166,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q166,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q166,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q166,en,described,dev,"char + embeddings (RRF, k=10)",1
+q166,en,described,dev,"char + embeddings (RRF, k=30)",1
+q166,en,described,dev,"char + embeddings (RRF, k=60)",1
+q166,en,described,dev,"BM25 + char (RRF, k=10)",1
+q166,en,described,dev,"BM25 + char (RRF, k=30)",1
+q166,en,described,dev,"BM25 + char (RRF, k=60)",1
+q166,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q166,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q166,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q166,es,described,dev,BM25,
+q166,es,described,dev,character n-grams,99
+q166,es,described,dev,embeddings,8
+q166,es,described,dev,"BM25 + embeddings (RRF, k=10)",15
+q166,es,described,dev,"BM25 + embeddings (RRF, k=30)",15
+q166,es,described,dev,"BM25 + embeddings (RRF, k=60)",16
+q166,es,described,dev,"char + embeddings (RRF, k=10)",11
+q166,es,described,dev,"char + embeddings (RRF, k=30)",1
+q166,es,described,dev,"char + embeddings (RRF, k=60)",2
+q166,es,described,dev,"BM25 + char (RRF, k=10)",
+q166,es,described,dev,"BM25 + char (RRF, k=30)",
+q166,es,described,dev,"BM25 + char (RRF, k=60)",
+q166,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",17
+q166,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",14
+q166,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",16
+q169,en,exact,dev,BM25,1
+q169,en,exact,dev,character n-grams,1
+q169,en,exact,dev,embeddings,1
+q169,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q169,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q169,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q169,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q169,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q169,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q169,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q169,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q169,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q169,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q169,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q169,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q169,es,exact,dev,BM25,1
+q169,es,exact,dev,character n-grams,1
+q169,es,exact,dev,embeddings,1
+q169,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q169,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q169,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q169,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q169,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q169,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q169,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q169,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q169,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q169,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q169,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q169,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q170,en,described,dev,BM25,1
+q170,en,described,dev,character n-grams,1
+q170,en,described,dev,embeddings,1
+q170,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q170,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q170,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q170,en,described,dev,"char + embeddings (RRF, k=10)",1
+q170,en,described,dev,"char + embeddings (RRF, k=30)",1
+q170,en,described,dev,"char + embeddings (RRF, k=60)",1
+q170,en,described,dev,"BM25 + char (RRF, k=10)",1
+q170,en,described,dev,"BM25 + char (RRF, k=30)",1
+q170,en,described,dev,"BM25 + char (RRF, k=60)",1
+q170,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q170,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q170,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q170,es,described,dev,BM25,
+q170,es,described,dev,character n-grams,
+q170,es,described,dev,embeddings,2
+q170,es,described,dev,"BM25 + embeddings (RRF, k=10)",3
+q170,es,described,dev,"BM25 + embeddings (RRF, k=30)",3
+q170,es,described,dev,"BM25 + embeddings (RRF, k=60)",5
+q170,es,described,dev,"char + embeddings (RRF, k=10)",4
+q170,es,described,dev,"char + embeddings (RRF, k=30)",8
+q170,es,described,dev,"char + embeddings (RRF, k=60)",9
+q170,es,described,dev,"BM25 + char (RRF, k=10)",
+q170,es,described,dev,"BM25 + char (RRF, k=30)",
+q170,es,described,dev,"BM25 + char (RRF, k=60)",
+q170,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",8
+q170,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",15
+q170,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",23
+q173,en,exact,dev,BM25,1
+q173,en,exact,dev,character n-grams,1
+q173,en,exact,dev,embeddings,1
+q173,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q173,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q173,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q173,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q173,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q173,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q173,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q173,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q173,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q173,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q173,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q173,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q173,es,exact,dev,BM25,1
+q173,es,exact,dev,character n-grams,1
+q173,es,exact,dev,embeddings,1
+q173,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q173,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q173,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q173,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q173,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q173,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q173,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q173,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q173,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q173,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q173,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q173,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q180,en,described,dev,BM25,1
+q180,en,described,dev,character n-grams,1
+q180,en,described,dev,embeddings,1
+q180,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q180,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q180,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q180,en,described,dev,"char + embeddings (RRF, k=10)",1
+q180,en,described,dev,"char + embeddings (RRF, k=30)",1
+q180,en,described,dev,"char + embeddings (RRF, k=60)",1
+q180,en,described,dev,"BM25 + char (RRF, k=10)",1
+q180,en,described,dev,"BM25 + char (RRF, k=30)",1
+q180,en,described,dev,"BM25 + char (RRF, k=60)",1
+q180,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q180,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q180,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q180,es,described,dev,BM25,
+q180,es,described,dev,character n-grams,7
+q180,es,described,dev,embeddings,1
+q180,es,described,dev,"BM25 + embeddings (RRF, k=10)",2
+q180,es,described,dev,"BM25 + embeddings (RRF, k=30)",2
+q180,es,described,dev,"BM25 + embeddings (RRF, k=60)",2
+q180,es,described,dev,"char + embeddings (RRF, k=10)",1
+q180,es,described,dev,"char + embeddings (RRF, k=30)",1
+q180,es,described,dev,"char + embeddings (RRF, k=60)",1
+q180,es,described,dev,"BM25 + char (RRF, k=10)",14
+q180,es,described,dev,"BM25 + char (RRF, k=30)",19
+q180,es,described,dev,"BM25 + char (RRF, k=60)",26
+q180,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",4
+q180,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",4
+q180,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",4
+q182,en,described,dev,BM25,1
+q182,en,described,dev,character n-grams,3
+q182,en,described,dev,embeddings,1
+q182,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q182,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q182,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q182,en,described,dev,"char + embeddings (RRF, k=10)",1
+q182,en,described,dev,"char + embeddings (RRF, k=30)",1
+q182,en,described,dev,"char + embeddings (RRF, k=60)",1
+q182,en,described,dev,"BM25 + char (RRF, k=10)",1
+q182,en,described,dev,"BM25 + char (RRF, k=30)",1
+q182,en,described,dev,"BM25 + char (RRF, k=60)",1
+q182,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q182,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q182,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q182,es,described,dev,BM25,49
+q182,es,described,dev,character n-grams,6
+q182,es,described,dev,embeddings,1
+q182,es,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q182,es,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q182,es,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q182,es,described,dev,"char + embeddings (RRF, k=10)",2
+q182,es,described,dev,"char + embeddings (RRF, k=30)",2
+q182,es,described,dev,"char + embeddings (RRF, k=60)",2
+q182,es,described,dev,"BM25 + char (RRF, k=10)",8
+q182,es,described,dev,"BM25 + char (RRF, k=30)",7
+q182,es,described,dev,"BM25 + char (RRF, k=60)",7
+q182,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",2
+q182,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q182,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q186,en,described,dev,BM25,1
+q186,en,described,dev,character n-grams,1
+q186,en,described,dev,embeddings,1
+q186,en,described,dev,"BM25 + embeddings (RRF, k=10)",1
+q186,en,described,dev,"BM25 + embeddings (RRF, k=30)",1
+q186,en,described,dev,"BM25 + embeddings (RRF, k=60)",1
+q186,en,described,dev,"char + embeddings (RRF, k=10)",1
+q186,en,described,dev,"char + embeddings (RRF, k=30)",1
+q186,en,described,dev,"char + embeddings (RRF, k=60)",1
+q186,en,described,dev,"BM25 + char (RRF, k=10)",1
+q186,en,described,dev,"BM25 + char (RRF, k=30)",1
+q186,en,described,dev,"BM25 + char (RRF, k=60)",1
+q186,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q186,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q186,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q186,es,described,dev,BM25,
+q186,es,described,dev,character n-grams,
+q186,es,described,dev,embeddings,1
+q186,es,described,dev,"BM25 + embeddings (RRF, k=10)",2
+q186,es,described,dev,"BM25 + embeddings (RRF, k=30)",2
+q186,es,described,dev,"BM25 + embeddings (RRF, k=60)",2
+q186,es,described,dev,"char + embeddings (RRF, k=10)",2
+q186,es,described,dev,"char + embeddings (RRF, k=30)",3
+q186,es,described,dev,"char + embeddings (RRF, k=60)",7
+q186,es,described,dev,"BM25 + char (RRF, k=10)",
+q186,es,described,dev,"BM25 + char (RRF, k=30)",
+q186,es,described,dev,"BM25 + char (RRF, k=60)",
+q186,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",10
+q186,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",15
+q186,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",27
+q189,en,exact,dev,BM25,1
+q189,en,exact,dev,character n-grams,1
+q189,en,exact,dev,embeddings,1
+q189,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q189,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q189,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q189,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q189,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q189,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q189,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q189,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q189,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q189,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q189,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q189,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q189,es,exact,dev,BM25,3
+q189,es,exact,dev,character n-grams,1
+q189,es,exact,dev,embeddings,1
+q189,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q189,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q189,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q189,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q189,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q189,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q189,es,exact,dev,"BM25 + char (RRF, k=10)",2
+q189,es,exact,dev,"BM25 + char (RRF, k=30)",2
+q189,es,exact,dev,"BM25 + char (RRF, k=60)",2
+q189,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q189,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q189,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q191,en,exact,dev,BM25,1
+q191,en,exact,dev,character n-grams,1
+q191,en,exact,dev,embeddings,1
+q191,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q191,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q191,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q191,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q191,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q191,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q191,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q191,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q191,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q191,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q191,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q191,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q191,es,exact,dev,BM25,1
+q191,es,exact,dev,character n-grams,1
+q191,es,exact,dev,embeddings,1
+q191,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q191,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q191,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q191,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q191,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q191,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q191,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q191,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q191,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q191,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q191,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q191,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q198,en,described,dev,BM25,1
+q198,en,described,dev,character n-grams,3
+q198,en,described,dev,embeddings,
+q198,en,described,dev,"BM25 + embeddings (RRF, k=10)",5
+q198,en,described,dev,"BM25 + embeddings (RRF, k=30)",11
+q198,en,described,dev,"BM25 + embeddings (RRF, k=60)",20
+q198,en,described,dev,"char + embeddings (RRF, k=10)",10
+q198,en,described,dev,"char + embeddings (RRF, k=30)",15
+q198,en,described,dev,"char + embeddings (RRF, k=60)",20
+q198,en,described,dev,"BM25 + char (RRF, k=10)",1
+q198,en,described,dev,"BM25 + char (RRF, k=30)",1
+q198,en,described,dev,"BM25 + char (RRF, k=60)",1
+q198,en,described,dev,"BM25 + char + embeddings (RRF, k=10)",2
+q198,en,described,dev,"BM25 + char + embeddings (RRF, k=30)",5
+q198,en,described,dev,"BM25 + char + embeddings (RRF, k=60)",7
+q198,es,described,dev,BM25,
+q198,es,described,dev,character n-grams,
+q198,es,described,dev,embeddings,
+q198,es,described,dev,"BM25 + embeddings (RRF, k=10)",
+q198,es,described,dev,"BM25 + embeddings (RRF, k=30)",
+q198,es,described,dev,"BM25 + embeddings (RRF, k=60)",
+q198,es,described,dev,"char + embeddings (RRF, k=10)",
+q198,es,described,dev,"char + embeddings (RRF, k=30)",
+q198,es,described,dev,"char + embeddings (RRF, k=60)",
+q198,es,described,dev,"BM25 + char (RRF, k=10)",
+q198,es,described,dev,"BM25 + char (RRF, k=30)",
+q198,es,described,dev,"BM25 + char (RRF, k=60)",
+q198,es,described,dev,"BM25 + char + embeddings (RRF, k=10)",
+q198,es,described,dev,"BM25 + char + embeddings (RRF, k=30)",
+q198,es,described,dev,"BM25 + char + embeddings (RRF, k=60)",
+q199,en,exact,dev,BM25,1
+q199,en,exact,dev,character n-grams,1
+q199,en,exact,dev,embeddings,1
+q199,en,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q199,en,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q199,en,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q199,en,exact,dev,"char + embeddings (RRF, k=10)",1
+q199,en,exact,dev,"char + embeddings (RRF, k=30)",1
+q199,en,exact,dev,"char + embeddings (RRF, k=60)",1
+q199,en,exact,dev,"BM25 + char (RRF, k=10)",1
+q199,en,exact,dev,"BM25 + char (RRF, k=30)",1
+q199,en,exact,dev,"BM25 + char (RRF, k=60)",1
+q199,en,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q199,en,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q199,en,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
+q199,es,exact,dev,BM25,1
+q199,es,exact,dev,character n-grams,1
+q199,es,exact,dev,embeddings,1
+q199,es,exact,dev,"BM25 + embeddings (RRF, k=10)",1
+q199,es,exact,dev,"BM25 + embeddings (RRF, k=30)",1
+q199,es,exact,dev,"BM25 + embeddings (RRF, k=60)",1
+q199,es,exact,dev,"char + embeddings (RRF, k=10)",1
+q199,es,exact,dev,"char + embeddings (RRF, k=30)",1
+q199,es,exact,dev,"char + embeddings (RRF, k=60)",1
+q199,es,exact,dev,"BM25 + char (RRF, k=10)",1
+q199,es,exact,dev,"BM25 + char (RRF, k=30)",1
+q199,es,exact,dev,"BM25 + char (RRF, k=60)",1
+q199,es,exact,dev,"BM25 + char + embeddings (RRF, k=10)",1
+q199,es,exact,dev,"BM25 + char + embeddings (RRF, k=30)",1
+q199,es,exact,dev,"BM25 + char + embeddings (RRF, k=60)",1
