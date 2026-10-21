@@ -24,7 +24,8 @@ import numpy as np
 
 MODEL = "jinaai/jina-embeddings-v2-base-es"
 CACHE = Path.home() / ".cache" / "folio" / "fastembed"
-SAVE_EVERY = 512
+SAVE_EVERY = 128
+BATCH = 4  # long, noisy OCR chunks can become 1,000 tokens: small batches keep memory low
 
 
 def key(text: str) -> str:
@@ -75,7 +76,7 @@ def main(folder: Path) -> None:
     print(f"Loading {MODEL} (the first time it downloads about 640 MB to {CACHE})", flush=True)
     model = TextEmbedding(MODEL, cache_dir=str(CACHE))
     start = time.time()
-    for done, (k, vector) in enumerate(zip(todo, model.embed([texts[k] for k in todo], batch_size=16),
+    for done, (k, vector) in enumerate(zip(todo, model.embed([texts[k] for k in todo], batch_size=BATCH),
                                            strict=True), start=1):
         vectors[k] = np.asarray(vector, dtype=np.float32)
         if done % SAVE_EVERY == 0 or done == len(todo):
