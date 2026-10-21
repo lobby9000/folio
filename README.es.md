@@ -12,11 +12,29 @@ Convierte documentos escaneados en campos estructurados y buscables: OCR, extrac
 | 2. Línea base de extracción | Reglas para el total y la fecha, montos y fechas normalizados, verificación con el efectivo | Terminada |
 | 3. Extracción aprendida y con LLM | Un ranker aprendido de recibos etiquetados, y una cascada que solo le pregunta a un LLM que lee el escaneo cuando hay duda | Terminada |
 | 4. Clasificación y agrupamiento | Tipo de documento a partir del texto del OCR, y formatos de recibo agrupados sin etiquetas | Terminada |
-| 5. Búsqueda | BM25 y embeddings fusionados con RRF, medidos con Recall@k y MRR | En curso |
-| 6. API y AWS | FastAPI en una imagen de contenedor para Lambda detrás de API Gateway | Planeada |
+| 5. Búsqueda | BM25, n-gramas de caracteres y embeddings fusionados con RRF, medidos con Recall@k y MRR en dos idiomas | Terminada |
+| 6. API y AWS | FastAPI en una imagen de contenedor para Lambda detrás de API Gateway | Siguiente |
 
 <!-- results:start -->
 ## Resultados hasta ahora
+
+### Etapa 5: búsqueda en páginas escaneadas
+
+Las 3,482 páginas de Tobacco3482 de la etapa 4 se cortan en 5,561 fragmentos y se buscan con 200 preguntas, cada una hecha en inglés y en español. La mitad nombra algo de la página (una persona, un número, un código) y la otra mitad solo la describe. Tres buscadores y sus fusiones se compararon con 50 preguntas de desarrollo, y la fusión elegida ahí se midió una sola vez con las otras 150, junto con cada buscador solo. Reporte: [búsqueda](results/search_eval.md).
+
+| En las 150 preguntas de prueba | Inglés: Recall@10 [IC 95%] | Inglés: MRR@10 | Español: Recall@10 [IC 95%] | Español: MRR@10 |
+|---|---|---|---|---|
+| BM25 sobre raíces de palabras en inglés | 95% [91%, 98%] | 0.862 | 47% [40%, 55%] | 0.283 |
+| TF-IDF de n-gramas de caracteres | 91% [86%, 95%] | 0.800 | 67% [59%, 74%] | 0.529 |
+| Embeddings (jina-embeddings-v2-base-es) | 81% [74%, 87%] | 0.697 | 79% [71%, 84%] | 0.608 |
+| N-gramas de caracteres + embeddings, RRF con k = 30 (elegida en desarrollo) | 94% [89%, 97%] | 0.820 | 84% [77%, 89%] | 0.697 |
+
+Recall@10 es la proporción de preguntas cuya página sale entre los primeros diez resultados. MRR@10 promedia 1/posición de esa página y cuenta cero después del décimo lugar.
+
+* **En inglés, BM25 es difícil de superar.** Tiene la página correcta entre sus primeros diez resultados en 95% de las preguntas. Los embeddings no encuentran ninguna página que BM25 no encuentre, mientras que BM25 encuentra 21 que los embeddings no, 19 de ellas de preguntas descritas (BM25 acierta 91% de esas y los embeddings 65%). Una razón probable: todas las páginas de este archivo tratan del negocio del tabaco, así que la idea general de una pregunta se parece a muchas páginas y deciden sus palabras específicas. Una advertencia: las preguntas se escribieron leyendo sus páginas y comparten con ellas 81% (exactas) y 43% (descritas) de sus palabras de contenido, probablemente más que un usuario que nunca ha visto la página.
+* **Entre idiomas, los embeddings cargan con la búsqueda.** Con las preguntas en español sobre páginas en inglés, BM25 solo conserva las que llevan un nombre o un número (93% de las exactas, 1% de las descritas). Los n-gramas de caracteres rescatan algunas por las palabras que se escriben parecido (67%), y los embeddings bilingües llegan a 79%, con 50 páginas que BM25 no encuentra.
+* **La fusión queda cerca del mejor buscador en cada idioma sin saber en qué idioma le preguntan.** N-gramas de caracteres con embeddings sacan 94% en inglés (BM25: 95%, McNemar exacta p = 0.69) y 84% en español (embeddings: 79%, p = 0.12), muy por encima del buscador más débil en cada uno: 19 páginas más que los embeddings en inglés y 55 más que BM25 en español (p < 0.001 en ambos). La pareja de siempre, BM25 con embeddings, quedó en segundo lugar muy cerca en desarrollo (MRR@10 0.804 contra 0.809) y en prueba saca 95% y 77%. Los resultados de prueba de todas las fusiones están en el CSV.
+* **Lo que queda para el paso de generación.** Si se le pasan cinco páginas a un modelo, la fusión incluye la correcta en 89% de las preguntas en inglés y 77% de las de español. Con diez, a 9 preguntas en inglés y 24 en español les sigue faltando su página. Un reranker sobre las primeras 20 páginas, traducir las preguntas antes de BM25 y otros modelos de embeddings son lo siguiente por probar.
 
 ### Etapa 4: tipos de documento y formatos de recibo
 
@@ -122,8 +140,8 @@ pregunta --> BM25 sobre raíces de palabras en inglés  --+
 ```
 
 * **Fragmentos** (`folio/search.py`): cada página se corta en párrafos, renglones y palabras en fragmentos de hasta 1,200 caracteres, como los guardaría un índice de RAG, y un último pedazo de menos de 300 caracteres (una firma, una lista de copias) se une al fragmento anterior. Las 3,482 páginas dan 5,561 fragmentos.
-* **Buscadores**: BM25 escrito aquí (k1 = 1.5, b = 0.75) sobre raíces de Snowball en inglés sin palabras vacías; similitud coseno sobre TF-IDF de n-gramas de 3 a 5 caracteres dentro de palabras, que todavía empata una palabra que el OCR dañó; y similitud coseno entre vectores de jina-embeddings-v2-base-es, un modelo de español e inglés que corre en el CPU con fastembed. Los vectores salen de `scripts/embed_search.py`, que baja el modelo de 640 MB y guarda cada vector bajo el SHA-1 de su texto, así que al volver a correrlo solo calcula lo que cambió.
-* **Fusión**: Reciprocal Rank Fusion suma 1/(k + posición) por cada lista en la que aparece una página, así nunca se comparan puntajes en escalas distintas. Cuatro combinaciones de buscadores, cada una con k = 10, 30 y 60, se comparan en las preguntas de desarrollo por MRR@10.
+* **Buscadores**: BM25 escrito aquí (k1 = 1.5, b = 0.75) sobre raíces de Snowball en inglés sin palabras vacías; similitud coseno sobre TF-IDF de n-gramas de 3 a 5 caracteres dentro de palabras, que todavía empata una palabra que el OCR dañó; y similitud coseno entre vectores de jina-embeddings-v2-base-es, un modelo de español e inglés que corre en el CPU con fastembed. Los vectores salen de `scripts/embed_search.py`, que baja el modelo de 640 MB y guarda cada vector bajo el SHA-1 de su texto, así que al volver a correrlo solo calcula lo que cambió. Los 5,561 fragmentos tardaron unas dos horas en el CPU de una laptop, una sola vez.
+* **Fusión**: Reciprocal Rank Fusion suma 1/(k + posición) por cada lista en la que aparece una página, así nunca se comparan puntajes en escalas distintas. Cuatro combinaciones de buscadores, cada una con k = 10, 30 y 60, se comparan en las preguntas de desarrollo por MRR@10. Ganaron los n-gramas de caracteres con embeddings y k = 30 (0.809), apenas arriba de BM25 con embeddings y k = 10 (0.804).
 * **Preguntas** (`benchmarks/search_questions.jsonl`): las páginas con al menos 400 caracteres de OCR se revolvieron con una semilla fija y se tomaron en ese orden. Para cada página, Claude (el modelo de Anthropic) leyó el texto y escribió una pregunta con reglas fijas, alternando dos tipos: las *exactas* usan un identificador de la página (un nombre, un número, un código) y las *descritas* no usan nombres, números ni códigos. Ninguna pregunta copia más de tres palabras seguidas de su página fuera de los identificadores, lo que se verifica automáticamente, y cada una tiene traducción al español. Se saltaron las páginas ilegibles, las que no decían nada específico y las plantillas que muchas páginas repiten, y el archivo guarda cada página revisada con el motivo. La página responde su pregunta. De las tres páginas más parecidas a cada página fuente (TF-IDF de palabras), se leyeron las que tienen coseno de 0.4 o más, y cinco de ellas, copias del mismo documento o formularios equivalentes, también cuentan como respuesta correcta. Las preguntas se dividieron una sola vez, 50 de desarrollo y 150 de prueba, la mitad de cada tipo.
 * **Evaluación** (`folio/evaluate_search.py`): Recall@1, 5, 10 y 20 y MRR@10 por idioma y por tipo de pregunta, intervalos de Wilson, pruebas exactas de McNemar entre la fusión y cada buscador solo, y cuántas preguntas encuentra cada buscador que el otro no.
 
@@ -184,7 +202,7 @@ En Ubuntu o cualquier Linux con Python 3.11 o más reciente:
 sudo apt install tesseract-ocr tesseract-ocr-spa
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt && pip install -e . --no-deps
-pytest -q                                   # 174 pruebas en unos segundos
+pytest -q                                   # 187 pruebas en unos segundos
 
 bash scripts/get_sroie.sh                   # 626 recibos en data/sroie (unos 600 MB)
 folio ocr data/sroie/data/img/000.jpg --prep gray --psm 6
@@ -203,7 +221,7 @@ folio eval-classify                         # tipos de documento: validación cr
 folio eval-cluster                          # formatos de recibo sin etiquetas, results/cluster_eval.md
 
 folio export-search                         # fragmentos y preguntas para el modelo de embeddings, en data/search
-pip install fastembed==0.9.0 && python scripts/embed_search.py data/search   # baja 640 MB una vez, como una hora en el CPU de una laptop
+pip install fastembed==0.9.0 && python scripts/embed_search.py data/search   # baja 640 MB una vez, unas dos horas en el CPU de una laptop
 folio eval-search                           # solo preguntas de desarrollo: compara las fusiones
 folio eval-search --split all               # la única corrida de prueba, results/search_eval.md
 

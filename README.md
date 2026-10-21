@@ -14,11 +14,29 @@ Turns scanned documents into structured, searchable fields: OCR, field extractio
 | 2. Extraction baseline | Rules for the total and the date, normalised amounts and dates, a cash check | Done |
 | 3. Learned and LLM extraction | A ranker learned from labelled receipts, and a cascade that asks an LLM reading the scan only when unsure | Done |
 | 4. Classification and clustering | Document type from OCR text, and receipt layouts grouped without labels | Done |
-| 5. Search | BM25 and embeddings fused with RRF, scored with Recall@k and MRR | In progress |
-| 6. API and AWS | FastAPI in a Lambda container image behind API Gateway | Planned |
+| 5. Search | BM25, character n-grams and embeddings fused with RRF, scored with Recall@k and MRR in two languages | Done |
+| 6. API and AWS | FastAPI in a Lambda container image behind API Gateway | Next |
 
 <!-- results:start -->
 ## Results so far
+
+### Stage 5: search over scanned pages
+
+The 3,482 Tobacco3482 pages of stage 4 are cut into 5,561 chunks and searched with 200 questions, each asked in English and in Spanish. Half name something on the page (a person, a number, a code) and half only describe it. Three rankers and their fusions were compared on 50 dev questions, and the fusion chosen there was scored once on the other 150, alongside each ranker alone. Report: [search](results/search_eval.md).
+
+| On the 150 test questions | English: Recall@10 [95% CI] | English: MRR@10 | Spanish: Recall@10 [95% CI] | Spanish: MRR@10 |
+|---|---|---|---|---|
+| BM25 over English word stems | 95% [91%, 98%] | 0.862 | 47% [40%, 55%] | 0.283 |
+| TF-IDF of character n-grams | 91% [86%, 95%] | 0.800 | 67% [59%, 74%] | 0.529 |
+| Embeddings (jina-embeddings-v2-base-es) | 81% [74%, 87%] | 0.697 | 79% [71%, 84%] | 0.608 |
+| Character n-grams + embeddings, RRF with k = 30 (chosen on dev) | 94% [89%, 97%] | 0.820 | 84% [77%, 89%] | 0.697 |
+
+Recall@10 is the share of questions whose page is among the first ten returned. MRR@10 averages 1/position of that page and counts zero past the tenth.
+
+* **In English, BM25 is hard to beat.** It has the right page in its first ten results for 95% of the questions. The embeddings find no page that BM25 misses, while BM25 finds 21 that the embeddings miss, 19 of them for described questions (BM25 gets 91% of those, the embeddings 65%). A likely reason: every page in this archive is about the tobacco business, so the gist of a question matches many pages and its specific words decide. One caution: the questions were written while reading their pages and share 81% (exact) and 43% (described) of their content words with them, probably more than a user who has never seen the page would.
+* **Across languages, the embeddings carry the search.** Asked in Spanish about English pages, BM25 keeps only the questions with a name or a number (93% of the exact ones, 1% of the described ones). Character n-grams rescue some through shared spellings (67%), and the bilingual embeddings reach 79%, with 50 pages that BM25 misses.
+* **The fusion stays close to the best ranker in each language without knowing which language it gets.** Character n-grams with embeddings get 94% in English (BM25: 95%, exact McNemar p = 0.69) and 84% in Spanish (embeddings: 79%, p = 0.12), far above the weakest ranker in each: 19 more pages than the embeddings in English and 55 more than BM25 in Spanish (p < 0.001 both). The usual pairing, BM25 with embeddings, was a close second on dev (MRR@10 0.804 against 0.809) and gets 95% and 77% on test. Every fusion's test results are in the CSV.
+* **What is left for the generation step.** Passing five pages to a model, the fusion has the right one for 89% of the English questions and 77% of the Spanish ones. With ten, 9 English and 24 Spanish questions still miss their page. A reranker over the first 20 pages, translating questions before BM25 and other embedding models are the next things to try.
 
 ### Stage 4: document types and receipt layouts
 
@@ -124,8 +142,8 @@ question --> BM25 over English word stems          --+
 ```
 
 * **Chunks** (`folio/search.py`): every page is cut at paragraph, line and word boundaries into chunks of up to 1,200 characters, as a RAG index would store them, and a last piece under 300 characters (a signature, a cc list) joins the chunk before it. The 3,482 pages give 5,561 chunks.
-* **Rankers**: BM25 written here (k1 = 1.5, b = 0.75) over Snowball English stems without stop words; cosine similarity over TF-IDF of character 3 to 5 grams inside words, which still matches a word OCR damaged; and cosine similarity between vectors from jina-embeddings-v2-base-es, a Spanish and English model run on the CPU through fastembed. The vectors come from `scripts/embed_search.py`, which downloads the 640 MB model and stores each vector under the SHA-1 of its text, so a rerun embeds only what changed.
-* **Fusion**: Reciprocal Rank Fusion adds 1/(k + position) for every list a page appears in, so scores on different scales are never compared. Four combinations of the rankers, each with k = 10, 30 and 60, are compared on the dev questions by MRR@10.
+* **Rankers**: BM25 written here (k1 = 1.5, b = 0.75) over Snowball English stems without stop words; cosine similarity over TF-IDF of character 3 to 5 grams inside words, which still matches a word OCR damaged; and cosine similarity between vectors from jina-embeddings-v2-base-es, a Spanish and English model run on the CPU through fastembed. The vectors come from `scripts/embed_search.py`, which downloads the 640 MB model and stores each vector under the SHA-1 of its text, so a rerun embeds only what changed. The 5,561 chunks took about two hours on a laptop CPU, once.
+* **Fusion**: Reciprocal Rank Fusion adds 1/(k + position) for every list a page appears in, so scores on different scales are never compared. Four combinations of the rankers, each with k = 10, 30 and 60, are compared on the dev questions by MRR@10. Character n-grams with embeddings at k = 30 won (0.809), just ahead of BM25 with embeddings at k = 10 (0.804).
 * **Questions** (`benchmarks/search_questions.jsonl`): pages with at least 400 characters of OCR text were shuffled with a fixed seed and taken in order. For each page Claude (Anthropic's model) read the text and wrote one question under fixed rules, alternating two kinds: *exact* questions use an identifier from the page (a name, a number, a code), *described* ones use no names, numbers or codes. No question copies more than three consecutive words of its page beyond identifiers, which is checked automatically, and each has a Spanish translation. Pages that were unreadable, said nothing specific, or were templates that many pages repeat were skipped, and the file keeps every page looked at with the reason. The page answers its question. Among the three pages most similar to each source page (word TF-IDF), those at cosine 0.4 or more were read, and five of them, copies of the same document or equivalent forms, count as right answers too. The questions were split once, 50 for dev and 150 for test, half of each kind.
 * **Evaluation** (`folio/evaluate_search.py`): Recall@1, 5, 10 and 20 and MRR@10 per language and kind of question, Wilson intervals, exact McNemar tests between the fusion and each ranker alone, and how many questions each ranker finds that the other misses.
 
@@ -192,7 +210,7 @@ Ubuntu or any Linux with Python 3.11 or newer:
 sudo apt install tesseract-ocr tesseract-ocr-spa
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt && pip install -e . --no-deps
-pytest -q                                   # 174 tests in a few seconds
+pytest -q                                   # 187 tests in a few seconds
 
 bash scripts/get_sroie.sh                   # 626 receipts into data/sroie (about 600 MB)
 folio ocr data/sroie/data/img/000.jpg --prep gray --psm 6
@@ -211,7 +229,7 @@ folio eval-classify                         # document types: cross-validation, 
 folio eval-cluster                          # receipt layouts without labels, results/cluster_eval.md
 
 folio export-search                         # chunks and queries to embed, into data/search
-pip install fastembed==0.9.0 && python scripts/embed_search.py data/search   # downloads 640 MB once, about an hour on a laptop CPU
+pip install fastembed==0.9.0 && python scripts/embed_search.py data/search   # downloads 640 MB once, about two hours on a laptop CPU
 folio eval-search                           # dev questions only: compares the fusions
 folio eval-search --split all               # the one test run, results/search_eval.md
 
